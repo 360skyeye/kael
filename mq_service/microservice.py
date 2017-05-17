@@ -18,8 +18,8 @@ gevent.monkey.patch_all()
 
 
 class micro_server(MQ):
-    def __init__(self, name, app=None, channel="center", extype="topic", lock=False,auri=None):
-        super(micro_server, self).__init__(app=app, channel=channel, extype=extype,auri=auri)
+    def __init__(self, name, app=None, channel="center", extype="topic", lock=False, auri=None):
+        super(micro_server, self).__init__(app=app, channel=channel, extype=extype, auri=auri)
         self.name = name
         self.app = app
         self.lock = lock

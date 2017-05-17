@@ -13,8 +13,7 @@ path = os.path.split(path)
 if path not in sys.path:
     sys.path.insert(0, path[0])
 
-
-AMQ_URI="amqp://user:3^)NB@101.199.126.121:5672/api"
+AMQ_URI = "amqp://user:3^)NB@101.199.126.121:5672/api"
 
 
 @click.group()
@@ -22,30 +21,27 @@ def cli():
     pass
 
 
-
-
 @cli.command()
 def s():
-    server = micro_server("s1",auri=AMQ_URI)
+    server = micro_server("s1", auri=AMQ_URI)
+
     @server.service("hha")
     def h(s):
         print "HHHHH", s, os.getpid()
         return {"b": 222}
 
-
     server.start(4, daemon=False)
-    r = server.hha(s=12312,)
+    r = server.hha(s=12312, )
     print "--------------", r
     print "done"
 
 
 @cli.command()
 def c():
-    server = micro_server("s1", auri=AMQ_URI )
+    server = micro_server("s1", auri=AMQ_URI)
     r = server.hha(s=12312, qid="a")
     print r
 
 
 if __name__ == "__main__":
     cli()
-
