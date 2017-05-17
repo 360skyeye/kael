@@ -29,6 +29,9 @@ class micro_server(MQ):
         self.pid = None
         self.LOCK_PATH = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "{0}.lock".format(self.name))
         self.is_running = False
+        self.services.setdefault("man", self.man)
+        self.create_queue(self.service_qid("man"), exclusive=False, auto_delete=True, )
+        self.join(self.service_qid("man"), self.service_qid("man"))
 
     def single_instance(self):
         try:
@@ -118,7 +121,7 @@ class micro_server(MQ):
             self.services.setdefault(service_name, fn)
             qid = self.service_qid(service_name)
             self.create_queue(qid, exclusive=False, auto_delete=True, )
-            self.join(qid, "{0}.{1}".format(self.name, service_name))
+            self.join(qid, qid)
 
             @wraps(fn)
             def wrapper(*args, **kwargs):
@@ -155,9 +158,15 @@ class micro_server(MQ):
         except:
             return super(micro_server, self).__getattribute__(item)
         if r:
-            return self.rpc(item)
+            print "_____________", item
+            rt = self.rpc(item)
+            rt.src = self.man(item)
+            return rt
         else:
             super(micro_server, self).__getattribute__(item)
+
+    def man(self, service):
+        return inspect.getsource(self.services.get(service, ))
 
 
 def main():

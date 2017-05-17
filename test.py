@@ -28,10 +28,11 @@ def s():
     @server.service("hha")
     def h(s):
         print "HHHHH", s, os.getpid()
-        return {"b": 222}
+        return {"b": s}
 
     server.start(4, daemon=False)
-    r = server.hha(s=12312, )
+    r = server.hha(123123)
+    print server.hha.src
     print "--------------", r
     print "done"
 
@@ -40,6 +41,7 @@ def s():
 def c():
     server = micro_server("s1", auri=AMQ_URI)
     r = server.hha(s=12312, qid="a")
+    print server.hha.src
     print r
 
 
