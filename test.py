@@ -45,5 +45,11 @@ def c():
     print r
 
 
+@cli.command()
+def p():
+    server = micro_server("s1", auri=AMQ_URI)
+    print server.pull_msg("a", limit=3)
+
+
 if __name__ == "__main__":
     cli()
