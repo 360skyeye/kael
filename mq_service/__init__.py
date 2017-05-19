@@ -78,15 +78,14 @@ class MQ(object):
                              routing_key=topic, )
 
     @session
-    def pull_msg(self, qid, topic=None, session=None):
+    def pull_msg(self, qid, topic=None, session=None, limit=0):
         # channel.queue_delete(queuename)
         session.queue_bind(exchange=self.channel,
                            queue=qid,
                            routing_key=topic, )
-
         CTX = session.basic_get(queue=qid, no_ack=False)
         buffer = []
-        while CTX[0]:
+        while CTX[0] and limit:
             ctx, cbp, body = CTX
             body = self.decode_body(body)
             call_funs = self.fun_map.get(topic)
@@ -94,6 +93,9 @@ class MQ(object):
                 map_func(CTX, call_funs)
             buffer.append([ctx, cbp, body])
             session.basic_ack(delivery_tag=ctx.delivery_tag)
+            limit -= 1
+            if not limit:
+                break
             CTX = session.basic_get(queue=qid, no_ack=False)
         return buffer
 
