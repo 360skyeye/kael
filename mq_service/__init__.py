@@ -85,8 +85,8 @@ class MQ(object):
                            routing_key=topic, )
         CTX = session.basic_get(queue=qid, no_ack=False)
         buffer = []
-        LIMIT=limit
-        while CTX[0] :
+        LIMIT = limit
+        while CTX[0]:
             ctx, cbp, body = CTX
             body = self.decode_body(body)
             call_funs = self.fun_map.get(topic)
