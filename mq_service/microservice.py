@@ -143,7 +143,7 @@ class micro_server(MQ):
                 self.create_queue(qid, exclusive=True, auto_delete=True, )
                 self.push_msg(qid, "", (args, kwargs), to=self.service_qid(service), )
                 while 1:
-                    ctx = self.pull_msg(qid=qid)
+                    ctx = self.pull_msg(qid=qid, )
                     if not ctx:
                         time.sleep(1)
                         continue
@@ -158,15 +158,15 @@ class micro_server(MQ):
         except:
             return super(micro_server, self).__getattribute__(item)
         if r:
-            print "_____________", item
             rt = self.rpc(item)
-            rt.src = self.man(item)
+            rt.src = self.rpc("man")(item)
             return rt
         else:
             super(micro_server, self).__getattribute__(item)
 
     def man(self, service):
-        return inspect.getsource(self.services.get(service, ))
+        if self.services.get(service, ):
+            return inspect.getsource(self.services.get(service, ))
 
 
 def main():
