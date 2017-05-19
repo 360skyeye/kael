@@ -85,7 +85,8 @@ class MQ(object):
                            routing_key=topic, )
         CTX = session.basic_get(queue=qid, no_ack=False)
         buffer = []
-        while CTX[0] and limit:
+        LIMIT = limit
+        while CTX[0]:
             ctx, cbp, body = CTX
             body = self.decode_body(body)
             call_funs = self.fun_map.get(topic)
@@ -93,8 +94,9 @@ class MQ(object):
                 map_func(CTX, call_funs)
             buffer.append([ctx, cbp, body])
             session.basic_ack(delivery_tag=ctx.delivery_tag)
-            limit -= 1
-            if not limit:
+            if LIMIT:
+                LIMIT -= 1
+            if not limit and LIMIT:
                 break
             CTX = session.basic_get(queue=qid, no_ack=False)
         return buffer

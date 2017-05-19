@@ -47,8 +47,11 @@ def c():
 
 @cli.command()
 def p():
-    server = micro_server("s1", auri=AMQ_URI)
-    print server.pull_msg("a", limit=3)
+    server = micro_server("serive_webservice", auri=AMQ_URI)
+    print server.web_proxy.src
+    # while 1:
+    # server.push_msg(qid="hahah",topic="test",to="a")
+    # print server.pull_msg("a", limit=3)
 
 
 if __name__ == "__main__":
