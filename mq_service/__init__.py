@@ -140,7 +140,7 @@ class MQ(object):
 
 
 def main():
-    print "aa"
+    print "aaaa"
 
 
 if __name__ == '__main__':
