@@ -50,7 +50,7 @@ class WORK_FRAME(micro_server):
         rtk = method.routing_key.replace(self.command_prefix, "")
         fn = self.command_fun.get(rtk)
         if fn:
-            result = fn(*args, **kwargs)
+            fn(*args, **kwargs)
             # self.pool.spawn(fn,*args,**kwargs)
 
     def command(self, name=None, *args, **kwargs):
