@@ -48,10 +48,14 @@ class MQ(object):
     def session(fn):
         @wraps(fn)
         def w(self, *args, **kwargs):
-            channel = self.connection.channel()
-            result = fn(self, session=channel, *args, **kwargs)
-            channel.close()
-            return result
+            session = kwargs.get("session")
+            if session:
+                return fn(*args, **kwargs)
+            else:
+                channel = self.connection.channel()
+                result = fn(self, session=channel, *args, **kwargs)
+                channel.close()
+                return result
 
         return w
 
