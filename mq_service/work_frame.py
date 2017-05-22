@@ -6,22 +6,17 @@ import gevent.monkey
 from microservice import micro_server
 import os
 import uuid
+import inspect
 
 gevent.monkey.patch_all()
 
 
-def command(cls):
-    '''''cls 必须实现acquire和release静态方法'''
+def Command(func):
+    def warp(cls, *args, **kwargs):
+        # cls.actions.setdefault(func.__name__,func)
+        return func(cls, *args, **kwargs)
 
-    def _deco(func):
-        cls.command_fun.setdefault(func.__name__, func)
-
-        def __deco():
-            pass
-
-        return __deco
-
-    return _deco
+    return warp
 
 
 class WORK_FRAME(micro_server):
@@ -33,6 +28,7 @@ class WORK_FRAME(micro_server):
         self.create_queue(self.command_q, ttl=15)
         self.command_prefix = "skyeye-rpc-{0}.".format(self.name)
         self.join(self.command_q, "{0}*".format(self.command_prefix))
+        self.init_command()
         self.command_pool = Pool(100)
 
     def start(self, process_num=2, daemon=True):
@@ -73,11 +69,26 @@ class WORK_FRAME(micro_server):
         ctx = self.pull_msg(qid=qid, session=ch)
         return {i[1].reply_to: i[-1] for i in ctx}
 
+    @classmethod
+    def methodsWithDecorator(cls, decoratorName):
+        sourcelines = inspect.getsourcelines(cls)[0]
+        for i, line in enumerate(sourcelines):
+            line = line.strip()
+            if line.split('(')[0].strip() == '@' + decoratorName:  # leaving a bit out
+                nextLine = sourcelines[i + 1]
+                name = nextLine.split('def')[1].split('(')[0].strip()
+                yield (name)
 
-@command(WORK_FRAME)
-def system(cmd):
-    output = os.popen(cmd)
-    return output.read()
+    def init_command(self):
+        l = self.methodsWithDecorator("Command")
+        for func in l:
+            fun = getattr(self, func)
+            self.command_fun.setdefault(func, fun)
+
+    @Command
+    def system(self, cmd):
+        output = os.popen(cmd)
+        return output.read()
 
 
 def main():

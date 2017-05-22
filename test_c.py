@@ -9,6 +9,7 @@ def main():
     w = WORK_FRAME("test", auri=AMQ_URI)
     # w.start()
     r = w.command("system", "ls -la /")
+    print r
     time.sleep(5)
     print w.get_response(r)
 
