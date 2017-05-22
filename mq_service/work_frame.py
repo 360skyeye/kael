@@ -6,7 +6,6 @@ import gevent.monkey
 from microservice import micro_server
 import os
 import uuid
-import time
 
 gevent.monkey.patch_all()
 
