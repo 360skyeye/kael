@@ -88,7 +88,9 @@ class WORK_FRAME(micro_server):
     @Command
     def system(self, cmd):
         output = os.popen(cmd)
-        return output.read()
+        data = output.read()
+        output.close()
+        return data
 
 
 def main():
