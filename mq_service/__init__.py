@@ -126,7 +126,7 @@ class MQ(object):
             session.basic_ack(delivery_tag=ctx.delivery_tag)
             if LIMIT:
                 LIMIT -= 1
-            if not limit and LIMIT:
+            if not LIMIT and limit:
                 break
             CTX = session.basic_get(queue=qid, no_ack=False)
         return buffer
