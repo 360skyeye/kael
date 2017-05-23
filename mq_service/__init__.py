@@ -4,6 +4,9 @@ import pika
 import uuid
 from functools import wraps
 import msgpack
+import signal
+import os
+import errno
 
 
 def map_func(data, fns):
@@ -12,6 +15,29 @@ def map_func(data, fns):
 
 def pipeline_func(data, fns):
     return reduce(lambda a, x: x(a), fns, data)
+
+
+class TimeoutError(Exception):
+    pass
+
+
+def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
 
 
 class MQ(object):
@@ -48,10 +74,14 @@ class MQ(object):
     def session(fn):
         @wraps(fn)
         def w(self, *args, **kwargs):
-            channel = self.connection.channel()
-            result = fn(self, session=channel, *args, **kwargs)
-            channel.close()
-            return result
+            session = kwargs.get("session")
+            if session:
+                return fn(self, *args, **kwargs)
+            else:
+                channel = self.connection.channel()
+                result = fn(self, session=channel, *args, **kwargs)
+                channel.close()
+                return result
 
         return w
 
@@ -96,13 +126,13 @@ class MQ(object):
             session.basic_ack(delivery_tag=ctx.delivery_tag)
             if LIMIT:
                 LIMIT -= 1
-            if not limit and LIMIT:
+            if not LIMIT and limit:
                 break
             CTX = session.basic_get(queue=qid, no_ack=False)
         return buffer
 
     @session
-    def push_msg(self, qid, topic, msg, ttl=0, to=None, session=None):
+    def push_msg(self, qid, topic, msg, reply_id=None, ttl=0, to=None, session=None, ):
         msg = self.encode_body(msg)
         msg_id = str(uuid.uuid4())
         session.basic_publish(exchange="" if to else self.channel,
@@ -110,7 +140,8 @@ class MQ(object):
                               body=msg,
                               properties=pika.BasicProperties(expiration="%d" % (ttl * 1000) if ttl else None,
                                                               reply_to=qid,
-                                                              correlation_id=msg_id,
+                                                              message_id=msg_id,
+                                                              correlation_id=reply_id,
                                                               )
                               )
         return msg_id
@@ -140,7 +171,7 @@ class MQ(object):
 
 
 def main():
-    print "aa"
+    print "aaaall"
 
 
 if __name__ == '__main__':
