@@ -141,7 +141,7 @@ class MQ(object):
                               properties=pika.BasicProperties(expiration="%d" % (ttl * 1000) if ttl else None,
                                                               reply_to=qid,
                                                               message_id=msg_id,
-                                                              correlation_id=reply_id,
+                                                              correlation_id=reply_id if reply_id else msg_id,
                                                               )
                               )
         return msg_id
