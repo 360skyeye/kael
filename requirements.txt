@@ -4,4 +4,4 @@
 gevent
 termcolor
 pika
-msgpack
+msgpack-python
