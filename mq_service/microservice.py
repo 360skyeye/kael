@@ -43,6 +43,13 @@ class micro_server(MQ):
             else:
                 raise
 
+    def start(self, n=1, daemon=True):
+        for i in range(n):
+            pro = Process(target=self.proc)
+            pro.daemon = daemon
+            pro.start()
+            self.pro.setdefault(pro.pid, pro)
+
     def proc(self):
         if self.lock:
             self.single_instance()
@@ -58,12 +65,21 @@ class micro_server(MQ):
         self.pool.join()
         return
 
-    def start(self, n=1, daemon=True):
-        for i in range(n):
-            pro = Process(target=self.proc)
-            pro.daemon = daemon
-            pro.start()
-            self.pro.setdefault(pro.pid, pro)
+    def __make_consumer(self, service_name, fn):
+        def consumer():
+            print "server[{2}]        service [{0: ^48}]   @  pid:{1} ".format(self.service_qid(service_name),
+                                                                               colored(os.getpid(), "green"),
+                                                                               colored(self.name, "green"))
+            channel = self.connection.channel()
+            channel.basic_qos(prefetch_count=1)
+            gfn = self.make_gevent_consumer(fn)
+
+            # """Using the Blocking Connection to consume messages from RabbitMQ"""
+            channel.basic_consume(gfn, queue=self.service_qid(service_name), no_ack=False)
+            channel.start_consuming()
+            print colored("---channel-close---", "red")
+
+        return consumer
 
     def make_gevent_consumer(self, fn):
         def haha(*args, **kwargs):
@@ -97,21 +113,6 @@ class micro_server(MQ):
 
         return warp
 
-    def __make_consumer(self, service_name, fn):
-        def consumer():
-            print "server[{2}]        service [{0: ^48}]   @  pid:{1} ".format(self.service_qid(service_name),
-                                                                               colored(os.getpid(), "green"),
-                                                                               colored(self.name, "green"))
-            channel = self.connection.channel()
-            channel.basic_qos(prefetch_count=1)
-            gfn = self.make_gevent_consumer(fn)
-            channel.basic_consume(gfn,
-                                  queue=self.service_qid(service_name), no_ack=False)
-            channel.start_consuming()
-            print colored("---channel-close---", "red")
-
-        return consumer
-
     def service_qid(self, service_name):
         qid = "{0}.{1}".format(self.name, service_name)
         return qid
@@ -126,14 +127,12 @@ class micro_server(MQ):
             @wraps(fn)
             def wrapper(*args, **kwargs):
                 pass
-
             return wrapper
 
         return process
 
     def rpc(self, service):
         def maker(*args, **kwargs):
-            # print "hahahahahah", service
             qid = kwargs.get("qid")
             if qid:
                 qid = kwargs.pop("qid")
