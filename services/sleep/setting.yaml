@@ -1,0 +1,6 @@
+
+service_name: sleep
+version: 1.0
+#command:
+#  - update
+

@@ -5,3 +5,4 @@ gevent
 termcolor
 pika
 msgpack-python
+PyYAML
