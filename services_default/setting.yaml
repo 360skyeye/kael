@@ -1,3 +1,7 @@
 service_group: s1
 enable:
-  - add
+  - caculate_service
+  - time_service
+#  - sleep_service
+
+log_path:

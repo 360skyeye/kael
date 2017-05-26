@@ -13,6 +13,4 @@ Services = get_service_group()
 # Services = get_service_group(service_group='not_exsit')
 pprint(Services)
 
-print 30*'-'
-print Services['add']['function'](6, 2)
-print Services['sleep']['function'](1, 1)
+

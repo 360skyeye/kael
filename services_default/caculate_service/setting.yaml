@@ -1,5 +1,5 @@
 
-service_base_name: add
+service_base_name: calculate
 version: 1.0
 #command:
 #  - update
