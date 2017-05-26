@@ -18,7 +18,7 @@ base_dir = os.path.sep.join(cur_dir.split(os.path.sep)[:-1])
 def get_service_group(service_group='services_default'):
     """
     1.根据配置的service_group名称，进入服务包读取配置，导出配置中发布的服务函数及配置
-    2.进入服务包中，根据服务自己的配置，导出服务函数
+    2.进入服务包中，根据服务自己的配置，导出此服务发布的服务函数s
     """
     Services = {'services': {}}
     service_base_name_exist = set()
