@@ -12,7 +12,7 @@ import time
 
 def sleep_function(m, n):
     print 'start@', datetime.datetime.now()
-    time.sleep(5)
+    time.sleep(3)
     print 'end@', datetime.datetime.now()
     return str(datetime.datetime.now())
 
