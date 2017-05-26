@@ -63,5 +63,6 @@ def get_service_group(service_group='services_default'):
     Services.update(group_setting)
     return Services
 
+
 if __name__ == '__main__':
     pprint(get_service_group())
