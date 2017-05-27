@@ -1,6 +1,6 @@
 
 service_base_name: sleep
 version: 1.0
-#command:
-#  - update
+publish:
+  - sleep_function
 

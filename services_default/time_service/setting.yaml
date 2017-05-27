@@ -1,6 +1,6 @@
 
-service_base_name: time_add
-version: 1.0
-#command:
-#  - update
-
+service_base_name: time
+version: 1.1
+publish:
+ - add
+ - transfer

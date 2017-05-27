@@ -7,8 +7,16 @@
 """
 
 
-def run(a, b):
+def add(a, b):
     return t(a) + y(b)
+
+
+def minus(a, b):
+    return t(a) - y(b)
+
+
+def multiply(a, b):
+    return t(a) * y(b)
 
 
 def t(a):
@@ -25,4 +33,4 @@ class TMP(object):
 
 
 if __name__ == '__main__':
-    print run(1, 2)
+    print add(1, 2)

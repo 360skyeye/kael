@@ -1,7 +1,5 @@
-service_group: s1
+service_group: s_default
 enable:
   - caculate_service
   - time_service
 #  - sleep_service
-
-log_path:
