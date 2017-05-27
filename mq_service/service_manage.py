@@ -24,6 +24,7 @@ def get_service_group(service_group='services_default'):
     :return
     example:
     {'micro_service': 's_default',
+     'service_group': 'services_default',
      'enable': ['caculate_service', 'time_service'],
      'services': {'calculate__add': {'function': <function add at 0x00000000029C7AC8>,
                                      'service_base_name': 'calculate',
@@ -53,7 +54,8 @@ def get_service_group(service_group='services_default'):
     if not os.path.exists(pkg_group_setting_file):
         raise ImportError('Service_Group Setting File NOT EXIST: {}'.format(pkg_group_setting_file))
 
-    Services = {'services': {}}
+    service_group_name = service_group_dir.split(os.path.sep)[-1]
+    Services = {'services': {}, 'service_group': service_group_name}
     service_base_name_exist = set()
 
     # 1 读取服务包配置
