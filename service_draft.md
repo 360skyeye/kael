@@ -28,8 +28,9 @@ services_default
 {'micro_service': 's_default',                                                          # 启动的微服务名字
  'service_group': 'services_default',                                                   # 载入的service_group名
  'enable': ['caculate_service', 'time_service'],                                        # 这个service_group中需要载入的service pkg
- 'services': {'calculate__add': {'function': <function add at 0x00000000029C7AC8>,      # 发布的函数   add                                              
-                                 'service_base_name': 'calculate',                      # 服务空间名   calculate                        
+ 'services': {'calculate__add': {                                                       # 对外发布的独立服务名称： calculate__add
+                                 'function': <function add at 0x00000000029C7AC8>,      # 发布的函数：   add                                              
+                                 'service_base_name': 'calculate',                      # 服务空间名：   calculate                        
                                  'service_from_pkg': 'caculate_service',                # 从caculate_service导出来的                                
                                  'version': 1.0},                                       # 版本号        
               'calculate__minus': {'function': <function minus at 0x00000000029C7B38>,                                          
