@@ -1,4 +1,4 @@
-service_group: s_default
+micro_service: s_default
 enable:
   - caculate_service
   - time_service

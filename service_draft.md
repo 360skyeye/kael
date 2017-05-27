@@ -7,8 +7,8 @@ Services代码结构草案
 
 服务结构：
 ```
-services_default
-|   setting.yaml        #服务包的整体配置，包括：1服务包对应的名字，2 enable哪些下属服务包
+services_default        
+|   setting.yaml        #服务包的整体配置，包括：1 micro_service微服务的名字，2 enable哪些下属服务包
 |   __init__.py         
 |
 +---caculate_service
@@ -25,8 +25,8 @@ services_default
 ```
 返回的Service字典如下：
 ```
-{'enable': ['caculate_service', 'time_service'],
- 'service_group': 's_default',  
+{'micro_service': 's_default',                                                          # 启动的微服务名字
+ 'enable': ['caculate_service', 'time_service'],                                        # 这个service_group中需要载入的service pkg
  'services': {'calculate__add': {'function': <function add at 0x00000000029C7AC8>,      # 发布的函数   add                                              
                                  'service_base_name': 'calculate',                      # 服务空间名   calculate                        
                                  'service_from_pkg': 'caculate_service',                # 从caculate_service导出来的                                

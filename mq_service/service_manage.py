@@ -23,8 +23,8 @@ def get_service_group(service_group='services_default'):
 
     :return
     example:
-    {'enable': ['caculate_service', 'time_service'],
-     'service_group': 's_default',
+    {'micro_service': 's_default',
+     'enable': ['caculate_service', 'time_service'],
      'services': {'calculate__add': {'function': <function add at 0x00000000029C7AC8>,
                                      'service_base_name': 'calculate',
                                      'service_from_pkg': 'caculate_service',
