@@ -4,6 +4,46 @@ Services代码结构草案
 1. 服务包整体层次保持不变
 2. 每个服务层次，服务自己配置发布哪些函数（使用配置而不是装饰器）服务名为（service_base_name__函数名）
 3. work frame层次调用服务包两种方式：1 指定服务包名称（字符串）； 2 import服务包（传包进去，实质也是获取路径）
+
+服务结构：
+```
+services_default
+|   setting.yaml        #服务包的整体配置，包括：1服务包对应的名字，2 enable哪些下属服务包
+|   __init__.py         
+|
++---caculate_service
+|       setting.yaml    #内层服务的配置，包括：1 service_base_name服务空间名字, 2发布哪些函数，3版本号
+|       __init__.py     #服务发布的函数需要在这里定义
+|
++---sleep_service
+|       setting.yaml
+|       __init__.py
+|
+\---time_service
+        setting.yaml
+        __init__.py
+```
+返回的Service字典如下：
+```
+{'enable': ['caculate_service', 'time_service'],
+ 'service_group': 's_default',  
+ 'services': {'calculate__add': {'function': <function add at 0x00000000029C7AC8>,      # 发布的函数   add                                              
+                                 'service_base_name': 'calculate',                      # 服务空间名   calculate                        
+                                 'service_from_pkg': 'caculate_service',                # 从caculate_service导出来的                                
+                                 'version': 1.0},                                       # 版本号        
+              'calculate__minus': {'function': <function minus at 0x00000000029C7B38>,                                          
+                                   'service_base_name': 'calculate',                                            
+                                   'service_from_pkg': 'caculate_service',                                          
+                                   'version': 1.0},
+              'time__add': {'function': <function add at 0x00000000029C7EB8>,
+                            'service_base_name': 'time',
+                            'service_from_pkg': 'time_service',
+                            'version': 1.1},
+              'time__transfer': {'function': <function transfer at 0x00000000029C7F28>,
+                                 'service_base_name': 'time',
+                                 'service_from_pkg': 'time_service',
+                                 'version': 1.1}}}
+```
 ---
 ### update: 2017年5月26日
 1. 整体层次：
@@ -13,26 +53,6 @@ Services代码结构草案
 
 2. 每个服务层次：
 - 发布多个函数服务,在使用装饰器指定发布的函数，服务名为（service_base_name__函数名）
-
-最后导出的service格式
-```
-{'service_group': 's1',
- 'enable': ['caculate_service', 'time_service'],
- 'log_path': None,
- 'services': {'calculate__add': {'function': <function run at 0x0000000002EEEDD8>,
-                            'service_base_name': 'calculate',
-                            'service_pkg': 'caculate_service',
-                            'version': 1.0},
-              'calculate__divide': {'function': <function run at 0x0000000002EEEDD1>,
-                            'service_base_name': 'calculate',
-                            'service_pkg': 'caculate_service',
-                            'version': 1.0},
-              'time__add': {'function': <function run at 0x0000000002EFD128>,
-                           'service_base_name': 'time',
-                           'service_pkg': 'time_service',
-                           'version': 1.0}}}
-```
-
 ---
 
 ### init: 2017年5月25日
@@ -40,17 +60,6 @@ Services代码结构草案
 - mq-service顶层目录下建立services包，每个下级package就是一种服务的代码。
 - services下__init__.py初始化时导出所有服务到Services字典中
 
-字典结构如下：
-```
-{'add': {
-         'function': <function run at 0x0000000002959128>,
-         'service_name': 'add',
-         'version': 1.0},
- 'sleep': {'function': <function sleep_function at 0x00000000029593C8>,
-           'service_name': 'sleep',
-           'version': 1.0}
-}
-```
 - key：每个服务配置的发布名称
 - value：包含实际运行的函数和其他设置
 
