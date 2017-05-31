@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/5/20
 
-from gevent.pool import Pool
-import gevent.monkey
-from microservice import micro_server
+import inspect
 import os
 import uuid
-import inspect
+
+import gevent.monkey
+from gevent.pool import Pool
+
+from microservice import micro_server
+from mq_service.service_manage import get_service_group
 
 gevent.monkey.patch_all()
 
@@ -22,7 +25,7 @@ def Command(func):
 class WORK_FRAME(micro_server):
     command_fun = {}
 
-    def __init__(self, name, app=None, channel="center", lock=False, auri=None):
+    def __init__(self, name, app=None, channel="center", lock=False, auri=None, service_group=None):
         super(WORK_FRAME, self).__init__(name, app=app, channel=channel, auri=auri, lock=lock)
         self.command_q = "{0}-{1}".format(self.name, self.id)
         self.create_queue(self.command_q, ttl=15)
@@ -30,6 +33,16 @@ class WORK_FRAME(micro_server):
         self.join(self.command_q, "{0}*".format(self.command_prefix))
         self.init_command()
         self.command_pool = Pool(100)
+        self.init_service(service_group)
+
+    def init_service(self, service_group):
+        self.loaded_services = get_service_group(service_group)
+        for service_name, value in self.loaded_services['services'].iteritems():
+            fn = value['function']
+            self.services.setdefault(service_name, fn)
+            qid = self.service_qid(service_name)
+            self.create_queue(qid, exclusive=False, auto_delete=True, )
+            self.join(qid, qid)
 
     def start(self, process_num=2, daemon=True):
         # print self.command_q
