@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/05/18
+import os
+import sys
+
+import click
+
 from mq_service.microservice import micro_server
 from mq_service.work_frame import WORK_FRAME
-import click
-import sys
-import os
 
 path = os.path.abspath(os.path.dirname(__file__))
 if path not in sys.path:
@@ -55,6 +57,14 @@ def p():
     # while 1:
     # server.push_msg(qid="hahah",topic="test",to="a")
     # print server.pull_msg("a", limit=3)
+
+
+@cli.command()
+def pc():
+    server = micro_server("test", auri=AMQ_URI)
+    print server.calculate__add(10, 20)
+    print server.calculate__minus(10, 20)
+    print server.time__add(1)
 
 
 if __name__ == "__main__":
