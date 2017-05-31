@@ -61,7 +61,7 @@ def p():
 
 @cli.command()
 def pc():
-    server = micro_server("test", auri=AMQ_URI)
+    server = WORK_FRAME("test", auri=AMQ_URI)
     print server.calculate__add(10, 20)
     print server.calculate__minus(10, 20)
     print server.time__add(1)
