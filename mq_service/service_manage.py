@@ -34,15 +34,13 @@ def get_service_group(service_group='services_default'):
                                        'service_base_name': 'calculate',
                                        'service_from_pkg': 'caculate_service',
                                        'version': 1.0},
-                  'time__add': {'function': <function add at 0x00000000029C7EB8>,
-                                'service_base_name': 'time',
-                                'service_from_pkg': 'time_service',
-                                'version': 1.1},
                   'time__transfer': {'function': <function transfer at 0x00000000029C7F28>,
                                      'service_base_name': 'time',
                                      'service_from_pkg': 'time_service',
                                      'version': 1.1}}}
     """
+    if service_group is None:
+        service_group = 'services_default'
     if type(service_group).__name__ == 'module':
         service_group_dir = service_group.__path__[0]
     else:
