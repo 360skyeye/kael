@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/5/10
-from mq_service import MQ
-from functools import wraps
-from uuid import uuid4
-from multiprocessing import Process
-from gevent.pool import Pool
-import gevent.monkey
-import os
-from termcolor import colored
-import sys
-import fcntl
-import pika
 import inspect
+import os
+import signal
+import sys
 import time
+from functools import wraps
+from multiprocessing import Process
+from uuid import uuid4
+
+import fcntl
+import gevent.monkey
+import pika
+from gevent.pool import Pool
+from termcolor import colored
+
+from mq_service import MQ
 
 gevent.monkey.patch_all()
 
@@ -44,11 +47,22 @@ class micro_server(MQ):
                 raise
 
     def start(self, n=1, daemon=True):
+        # 防止子进程terminate后变为僵尸进程
+        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
         for i in range(n):
             pro = Process(target=self.proc)
             pro.daemon = daemon
             pro.start()
             self.pro.setdefault(pro.pid, pro)
+
+    def stop(self):
+        # 停止所有子进程
+        for pid, pro in self.pro.iteritems():
+            pro.terminate()
+
+    def restart(self, n=1, daemon=True):
+        self.stop()
+        self.start(n, daemon)
 
     def proc(self):
         if self.lock:
