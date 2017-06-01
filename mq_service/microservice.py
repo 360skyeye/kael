@@ -62,6 +62,9 @@ class micro_server(MQ):
 
     def restart(self, n=1, daemon=True):
         self.stop()
+        # * 需要保证queue一定存在，存在可能：重启之间的时间queue被删除了，那后面监听消费queue会报错
+        # 一种思路是等待一段时间，等queue自动全删完了，再重新建（依赖于auto_delete的响应时间）
+        time.sleep(2)
         for service, fn in self.services.items():
             self.creat_service_queue_and_join(service)
         self.start(n, daemon)
