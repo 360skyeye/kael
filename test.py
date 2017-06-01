@@ -3,6 +3,7 @@
 # Created by zhangzhuo@360.cn on 17/05/18
 import os
 import sys
+import time
 
 import click
 
@@ -35,6 +36,20 @@ def s():
 
     server.start(4, daemon=False)
     r = server.hha(123123)
+    print server.hha.src
+    print "--------------", r
+    print "done"
+    print server.services
+
+    time.sleep(2)
+    # server.stop()
+    print 'stop & restart'
+    print '-' * 20
+
+    print server.services
+    # time.sleep(3)
+    server.restart(2, daemon=False)
+    r = server.hha(123)
     print server.hha.src
     print "--------------", r
     print "done"
