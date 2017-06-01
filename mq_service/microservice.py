@@ -62,6 +62,8 @@ class micro_server(MQ):
 
     def restart(self, n=1, daemon=True):
         self.stop()
+        for service, fn in self.services.items():
+            self.creat_service_queue_and_join(service)
         self.start(n, daemon)
 
     def proc(self):
@@ -131,12 +133,15 @@ class micro_server(MQ):
         qid = "{0}.{1}".format(self.name, service_name)
         return qid
 
+    def creat_service_queue_and_join(self, service_name):
+        qid = self.service_qid(service_name)
+        self.create_queue(qid, exclusive=False, auto_delete=True, )
+        self.join(qid, qid)
+
     def service(self, service_name, *args, **kwargs):
         def process(fn):
             self.services.setdefault(service_name, fn)
-            qid = self.service_qid(service_name)
-            self.create_queue(qid, exclusive=False, auto_delete=True, )
-            self.join(qid, qid)
+            self.creat_service_queue_and_join(service_name)
 
             @wraps(fn)
             def wrapper(*args, **kwargs):

@@ -40,9 +40,10 @@ class WORK_FRAME(micro_server):
         for service_name, value in self.loaded_services['services'].iteritems():
             fn = value['function']
             self.services.setdefault(service_name, fn)
-            qid = self.service_qid(service_name)
-            self.create_queue(qid, exclusive=False, auto_delete=True, )
-            self.join(qid, qid)
+            self.creat_service_queue_and_join(service_name)
+
+    def reload_service(self):
+        pass
 
     def start(self, process_num=2, daemon=True):
         # print self.command_q
