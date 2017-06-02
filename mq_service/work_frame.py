@@ -40,14 +40,12 @@ class WORK_FRAME(micro_server):
         for service_name, value in self.loaded_services['services'].iteritems():
             fn = value['function']
             self.services.setdefault(service_name, fn)
-            self.creat_service_queue_and_join(service_name)
 
-    def reload_service(self):
-        pass
-
-    def start(self, process_num=2, daemon=True):
+    def frame_start(self, process_num=2, daemon=True):
+        """框架启动"""
+        print 'WORK FRAME START'
         # print self.command_q
-        super(WORK_FRAME, self).start(process_num, daemon=daemon)
+        self.start(process_num, daemon=daemon)
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
                               queue=self.command_q, no_ack=False)
@@ -55,6 +53,7 @@ class WORK_FRAME(micro_server):
         # self.pool.join()
 
     def process_command(self, ch, method, props, body):
+        """server中的命令执行函数"""
         ch.basic_ack(delivery_tag=method.delivery_tag)
         body = self.decode_body(body)
         args, kwargs = body
@@ -70,6 +69,7 @@ class WORK_FRAME(micro_server):
             # self.pool.spawn(fn,*args,**kwargs)
 
     def command(self, name=None, *args, **kwargs):
+        """work frame客户端命令调用函数"""
         if name and name in self.command_fun:
             topic = "{0}{1}".format(self.command_prefix, name)
             qid = "command_{0}.{1}.{2}".format(self.command_q, name, uuid.uuid4())
@@ -78,6 +78,7 @@ class WORK_FRAME(micro_server):
             return qid
 
     def get_response(self, qid, timeout=5):
+        """work frame 客户端结果获取函数"""
         # time.sleep(timeout)
         ch = self.connection.channel()
         ctx = self.pull_msg(qid=qid, session=ch)
@@ -105,6 +106,11 @@ class WORK_FRAME(micro_server):
         data = output.read()
         output.close()
         return data
+
+    @Command
+    def restart_service(self):
+        self.restart(1)
+        return 'restart ok'
 
 
 def main():
