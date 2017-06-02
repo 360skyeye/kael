@@ -66,7 +66,7 @@ def c():
 @cli.command()
 def p():
     w = WORK_FRAME("test", auri=AMQ_URI)
-    w.start()
+    w.frame_start()
     # server = micro_server("serive_webservice", auri=AMQ_URI)
     # print server.web_proxy.src
     # while 1:
@@ -80,6 +80,11 @@ def pc():
     print server.calculate__add(10, 20)
     print server.calculate__minus(10, 20)
     print server.time__add(1)
+
+    r = server.command("restart_service")
+    print r
+    time.sleep(3)
+    print server.get_response(r)
 
 
 if __name__ == "__main__":
