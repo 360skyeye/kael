@@ -147,7 +147,9 @@ class MQ(object):
         return msg_id
 
     @session
-    def create_queue(self, qid, ttl=0, session=None, args={}, **kwargs):
+    def create_queue(self, qid, ttl=0, session=None, args=None, **kwargs):
+        if not args:
+            args = {}
         if ttl:
             args.update({"x-message-ttl": ttl * 1000})
         return session.queue_declare(queue=qid, arguments=args, **kwargs)
