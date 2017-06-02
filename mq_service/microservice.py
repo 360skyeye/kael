@@ -33,8 +33,7 @@ class micro_server(MQ):
         self.LOCK_PATH = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "{0}.lock".format(self.name))
         self.is_running = False
         self.services.setdefault("man", self.man)
-        self.create_queue(self.service_qid("man"), exclusive=False, auto_delete=True, )
-        self.join(self.service_qid("man"), self.service_qid("man"))
+        self.register_all_service_queues()
 
     def single_instance(self):
         try:
@@ -47,8 +46,11 @@ class micro_server(MQ):
                 raise
 
     def start(self, n=1, daemon=True):
+        print 'MICRO START'
         # 防止子进程terminate后变为僵尸进程
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+
+        self.register_all_service_queues()
         for i in range(n):
             pro = Process(target=self.proc)
             pro.daemon = daemon
@@ -65,8 +67,7 @@ class micro_server(MQ):
         # * 需要保证queue一定存在，存在可能：重启之间的时间queue被删除了，那后面监听消费queue会报错
         # 一种思路是等待一段时间，等queue自动全删完了，再重新建（依赖于auto_delete的响应时间）
         time.sleep(2)
-        for service, fn in self.services.items():
-            self.creat_service_queue_and_join(service)
+
         self.start(n, daemon)
 
     def proc(self):
@@ -136,15 +137,16 @@ class micro_server(MQ):
         qid = "{0}.{1}".format(self.name, service_name)
         return qid
 
-    def creat_service_queue_and_join(self, service_name):
-        qid = self.service_qid(service_name)
-        self.create_queue(qid, exclusive=False, auto_delete=True, )
-        self.join(qid, qid)
+    def register_all_service_queues(self):
+        """为所有服务函数创建queue"""
+        for service, fn in self.services.items():
+            qid = self.service_qid(service)
+            self.create_queue(qid, exclusive=False, auto_delete=True, )
+            self.join(qid, qid)
 
     def service(self, service_name, *args, **kwargs):
         def process(fn):
             self.services.setdefault(service_name, fn)
-            self.creat_service_queue_and_join(service_name)
 
             @wraps(fn)
             def wrapper(*args, **kwargs):
