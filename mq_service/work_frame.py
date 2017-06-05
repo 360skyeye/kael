@@ -25,7 +25,7 @@ def Command(func):
 class WORK_FRAME(micro_server):
     command_fun = {}
 
-    def __init__(self, name, app=None, channel="center", lock=False, auri=None, service_group=None):
+    def __init__(self, name, service_group_conf=None, app=None, channel="center", lock=False, auri=None):
         super(WORK_FRAME, self).__init__(name, app=app, channel=channel, auri=auri, lock=lock)
         self.command_q = "{0}-{1}".format(self.name, self.id)
         self.create_queue(self.command_q, ttl=15)
@@ -33,18 +33,21 @@ class WORK_FRAME(micro_server):
         self.join(self.command_q, "{0}*".format(self.command_prefix))
         self.init_command()
         self.command_pool = Pool(100)
-        self.init_service(service_group)
+        self.service_group_conf = service_group_conf
 
-    def init_service(self, service_group):
-        self.loaded_services = get_service_group(service_group)
-        for service_name, value in self.loaded_services['services'].iteritems():
-            fn = value['function']
-            self.services.setdefault(service_name, fn)
+    def init_service(self):
+        if not self.service_group_conf:
+            raise ImportError('No Config of Service Group: service_group_conf')
+        self.loaded_services = get_service_group(self.service_group_conf)
+        for service_pkg, value in self.loaded_services['service_pkg'].iteritems():
+            for service_name, func in value['services'].iteritems():
+                self.services.setdefault(service_name, func)
 
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
         print 'WORK FRAME START'
         # print self.command_q
+        self.init_service()
         self.start(process_num, daemon=daemon)
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
