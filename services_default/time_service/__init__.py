@@ -7,10 +7,11 @@
 """
 import datetime
 import time
+from helper import h
 
 
 def add(a, b=1):
-    return time.time() + b
+    return time.time() + b + h(b)
 
 
 def transfer(dt):

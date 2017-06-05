@@ -1,5 +1,0 @@
-
-service_base_name: sleep
-version: 1.0
-publish:
-  - run

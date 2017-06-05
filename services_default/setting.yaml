@@ -1,5 +1,5 @@
-micro_service: s_default
-enable:
-  - caculate_service
-  - time_service
-#  - sleep_service
+service_group: services_default
+path:
+  - ./caculate_service
+  - ./time_service
+#  - /home/zhangmengyang/project/mq-service/services_default/sleep_service
