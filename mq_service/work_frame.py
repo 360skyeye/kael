@@ -61,7 +61,7 @@ class WORK_FRAME(micro_server):
         fn = self.command_fun.get(rtk)
         if fn:
             result = fn(*args, **kwargs)
-            rbody = self.encode_body(result)
+            rbody = result
             # print rbody
             self.push_msg(qid=self.command_q, topic="", msg=rbody, reply_id=props.correlation_id, session=ch,
                           to=props.reply_to)
@@ -100,6 +100,9 @@ class WORK_FRAME(micro_server):
             fun = getattr(self, func)
             self.command_fun.setdefault(func, fun)
 
+    def get_last_version(self,service=None):
+        r=self.command("get_service_version",)
+
     @Command
     def system(self, cmd):
         output = os.popen(cmd)
@@ -111,6 +114,20 @@ class WORK_FRAME(micro_server):
     def restart_service(self):
         self.restart(1)
         return 'restart ok'
+
+    @Command
+    def get_service_version(self,service=None):
+        data={"id":self.command_q,}
+        rdata={}
+        if not service:
+            for i in self.loaded_services['service_pkg']:
+                rdata.setdefault(i,self.loaded_services['service_pkg'][i])
+        else:
+            rdata={service:self.loaded_services['service_pkg'][service]}
+        data["services"] = rdata
+        return data
+
+
 
 
 def main():
