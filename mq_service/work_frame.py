@@ -9,6 +9,7 @@ from gevent.pool import Pool
 from microservice import micro_server
 from mq_service.service_manage import get_service_group
 import time
+import copy
 
 gevent.monkey.patch_all()
 
@@ -104,7 +105,6 @@ class WORK_FRAME(micro_server):
 
     def get_last_version(self, service=None, timeout=5):
         r = self.command("get_service_version", service=service)
-        # time.sleep(timeout)
         data = self.get_response(r, timeout=timeout, )
         last_dict = {}
         for id in data:
@@ -133,10 +133,17 @@ class WORK_FRAME(micro_server):
         rdata = {}
         if not service:
             for i in self.loaded_services['service_pkg']:
-                rdata.setdefault(i, self.loaded_services['service_pkg'][i])
+                data=copy.deepcopy(self.loaded_services['service_pkg'][i])
+                data.pop("services")
+                rdata.setdefault(i, data)
         else:
-            rdata = {service: self.loaded_services['service_pkg'][service]}
+            data=copy.deepcopy(self.loaded_services['service_pkg'][service])
+            data.pop("services")
+            rdata = {service: data}
         return rdata
+
+
+
 
 
 def main():
