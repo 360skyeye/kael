@@ -133,17 +133,14 @@ class WORK_FRAME(micro_server):
         rdata = {}
         if not service:
             for i in self.loaded_services['service_pkg']:
-                data=copy.deepcopy(self.loaded_services['service_pkg'][i])
+                data = copy.deepcopy(self.loaded_services['service_pkg'][i])
                 data.pop("services")
                 rdata.setdefault(i, data)
         else:
-            data=copy.deepcopy(self.loaded_services['service_pkg'][service])
+            data = copy.deepcopy(self.loaded_services['service_pkg'][service])
             data.pop("services")
             rdata = {service: data}
         return rdata
-
-
-
 
 
 def main():
