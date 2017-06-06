@@ -112,7 +112,7 @@ class WORK_FRAME(micro_server):
             for service in data[id]:
                 t = last_dict.get(service)
                 if t and data[id][service]["version"] > t[0]:
-                    last_dict[service][0] = data[id][service]["version"]
+                    last_dict[service] = [data[id][service]["version"], data[id][service]["path"], id]
                 else:
                     last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
         return last_dict
