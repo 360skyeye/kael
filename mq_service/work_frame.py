@@ -68,7 +68,6 @@ class WORK_FRAME(micro_server):
         if len(buf) > 1:
             id = buf[1]
             if self.command_q != id:
-                print "no match id"
                 return
         fn = self.command_fun.get(rtk)
         if fn:
@@ -158,7 +157,6 @@ class WORK_FRAME(micro_server):
 
     @Command
     def zip_pkg(self, service_pkg):
-        print '--- enter zip ---'
         pkg_path = self.loaded_services['service_pkg'][service_pkg]['path']
         tmp = BytesIO()
         cwd = os.getcwd()
@@ -167,19 +165,16 @@ class WORK_FRAME(micro_server):
             for root, dirs, files in os.walk('.'):
                 for f in files:
                     if f.split('.')[-1] != 'pyc':
-                        print os.path.join(root, f)
                         z.write(os.path.join(root, f), compress_type=zipfile.ZIP_DEFLATED)
 
         res = tmp.getvalue()
         tmp.close()
         os.chdir(cwd)
-        print '--- leave zip ---'
         return res
 
     @Command
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
-        print '--- Enter update pkg ---'
         if from_server_id == self.command_q:
             return 'I am the source code'
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
@@ -200,14 +195,10 @@ class WORK_FRAME(micro_server):
 
         cwd = os.getcwd()
         os.chdir(self_server_path)
-        print 'zip file list'
-        for i in z.namelist():
-            print i
         z.extractall()
         z.close()
         tmp.close()
         os.chdir(cwd)
-        print '--- Leave update pkg ---'
         return 'update ok'
 
     def update_service(self, service_pkg, version=None, id=None, timeout=5):
