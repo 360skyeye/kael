@@ -188,7 +188,7 @@ class WORK_FRAME(micro_server):
             return {'msg': 'e'}
 
         content = data[from_server_id].get('content')
-        source_server_path = data[from_server_id].get('path')
+        # source_server_path = data[from_server_id].get('path')
         self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
         if not self_server_path:
             return {'msg': 'No Service In Server: {}, Cannot update'.format(self.command_q)}
