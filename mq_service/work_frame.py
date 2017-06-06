@@ -183,13 +183,16 @@ class WORK_FRAME(micro_server):
             tmp = BytesIO()
             tmp.write(value)
             z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
-            print z.namelist()
+            print 'zip filr list'
+            for i in z.namelist():
+                print i
             # todo 释放文件部署
             z.close()
             tmp.close()
 
     def deplay_update_from_to(self, from_server_id, to_server_id, service_pkg, timeout=5):
         r = self.command('update_pkg', from_server_id, service_pkg, id=to_server_id, timeout=timeout)
+        print r
         # data = self.get_response(r, timeout=timeout)
 
 
