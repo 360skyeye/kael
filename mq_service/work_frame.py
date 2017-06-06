@@ -155,11 +155,9 @@ class WORK_FRAME(micro_server):
         return rdata
 
     @Command
-    # def zip_pkg(self, pkg_path):
     def zip_pkg(self, service_pkg):
-        print 'enter zip================'
+        print '--- enter zip ---'
         pkg_path = self.loaded_services['service_pkg'][service_pkg]['path']
-
         tmp = BytesIO()
         with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, dirs, files in os.walk(pkg_path):
@@ -168,14 +166,13 @@ class WORK_FRAME(micro_server):
 
         res = tmp.getvalue()
         tmp.close()
-        print 'out zip================'
+        print '--- leave zip ---'
         return res
-        # return tmp.getvalue()
 
     @Command
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
-        print '--- enter update pkg ---'
+        print '--- Enter update pkg ---'
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
         value = data[from_server_id]
@@ -183,17 +180,13 @@ class WORK_FRAME(micro_server):
             tmp = BytesIO()
             tmp.write(value)
             z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
-            print 'zip filr list'
+            print 'zip file list'
             for i in z.namelist():
                 print i
             # todo 释放文件部署
             z.close()
             tmp.close()
-
-    def deplay_update_from_to(self, from_server_id, to_server_id, service_pkg, timeout=5):
-        r = self.command('update_pkg', from_server_id, service_pkg, id=to_server_id, timeout=timeout)
-        print r
-        # data = self.get_response(r, timeout=timeout)
+        print '--- Leave update pkg ---'
 
 
 def main():
