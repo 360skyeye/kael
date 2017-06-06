@@ -82,7 +82,8 @@ class WORK_FRAME(micro_server):
 
     def get_response(self, qid, timeout=0):
         """work frame 客户端结果获取函数"""
-        if timeout: time.sleep(timeout)
+        if timeout:
+            time.sleep(timeout)
         ch = self.connection.channel()
         ctx = self.pull_msg(qid=qid, session=ch)
         return {i[1].reply_to: i[-1] for i in ctx}
