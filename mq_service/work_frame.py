@@ -73,9 +73,9 @@ class WORK_FRAME(micro_server):
             self.push_msg(qid=self.command_q, topic="", msg=rbody, reply_id=props.correlation_id, session=ch,
                           to=props.reply_to)
 
-    def command(self, name=None, *args,**kwargs):
+    def command(self, name=None, *args, **kwargs):
         """work frame客户端命令调用函数"""
-        id=kwargs.get("id")
+        id = kwargs.get("id")
         if id:
             kwargs.pop("id")
         if name and name in self.command_fun:
