@@ -175,7 +175,7 @@ class WORK_FRAME(micro_server):
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
         print '--- Enter update pkg ---'
-        if from_server_id==self.command_q:
+        if from_server_id == self.command_q:
             return
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
