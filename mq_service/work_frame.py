@@ -156,6 +156,7 @@ class WORK_FRAME(micro_server):
 
     @Command
     def zip_pkg(self, pkg_path):
+        # print 'enter zip================'
         tmp = StringIO()
         with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, dirs, files in os.walk(pkg_path):
