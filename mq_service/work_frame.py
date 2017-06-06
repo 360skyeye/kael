@@ -80,8 +80,10 @@ class WORK_FRAME(micro_server):
     def command(self, name=None, *args, **kwargs):
         """work frame客户端命令调用函数"""
         id = kwargs.get("id")
-        if id:
+        try:
             kwargs.pop("id")
+        except:
+            pass
         if name and name in self.command_fun:
             topic = "{0}{1}".format(self.command_prefix, name)
             if id:
@@ -173,26 +175,41 @@ class WORK_FRAME(micro_server):
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
         print '--- Enter update pkg ---'
-        # from_server_id not given, find newest code
-        # if not from_server_id:
-        #     self.get_last_version()
-        if from_server_id == self.command_q:
+        if from_server_id==self.command_q:
             return
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
-        if data:
-            value = data[from_server_id]
-            if value:
-                tmp = BytesIO()
-                tmp.write(value)
-                z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
-                print 'zip file list'
-                for i in z.namelist():
-                    print i
-                # todo 释放文件部署
-                z.close()
-                tmp.close()
-            print '--- Leave update pkg ---'
+        value = data[from_server_id]
+        if value:
+            tmp = BytesIO()
+            tmp.write(value)
+            z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
+            print 'zip file list'
+            for i in z.namelist():
+                print i
+            # todo 释放文件部署
+            z.close()
+            tmp.close()
+        print '--- Leave update pkg ---'
+
+    def update_service(self, service_pkg, version=None, id=None, timeout=5):
+        fid = None
+        if not version:
+            v = self.get_last_version(service_pkg, ).get(service_pkg)
+            if v:
+                fid = v[2]
+        else:
+            r = self.command("get_service_version", service=service_pkg)
+            data = self.get_response(r, timeout=timeout, )
+            for ids in data:
+                for service in data[id]:
+                    if version == data[id][service]["version"]:
+                        fid = ids
+                        break
+        if fid:
+            r = self.command("update_pkg", fid, service_pkg, id=id, timeout=timeout)
+            data = self.get_response(r, timeout=timeout)
+            return data
 
 
 def main():
