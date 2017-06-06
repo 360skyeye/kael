@@ -1,5 +1,34 @@
 Services代码结构草案
 ---
+
+### update: 2017年6月5日
+1. work frame层次指定配置yaml文件，配置中每个微服务写所在路径。
+2. 不依赖于文件夹组织结构，不一定在同一文件夹，但微服务组织在一起是推荐方式。
+3. 微服务的层次不变
+返回的Service字典如下：
+```
+{
+        'service_group': 'services_default',
+        'service_pkg':
+            {
+                'calculate': {
+                    'path': '/data/project/mq-service/services_default/sleep_service',
+                    'version': 1.0,
+                    'services': {
+                        'calculate__add': <function add at 0x00000000029C7AC8>,
+                        'calculate__minus': <function minus at 0x00000000029C7B38>
+                    }
+                },
+                'time': {
+                    'path': '/data/project/mq-service/services_default/time_service',
+                    'version': 1.0,
+                    'services': {
+                        'time__transfer': <function transfer at 0x00000000029C7F28>
+                    }
+                }
+            }
+    }
+```
 ### update: 2017年5月27日
 1. 服务包整体层次保持不变
 2. 每个服务层次，服务自己配置发布哪些函数（使用配置而不是装饰器）服务名为（service_base_name__函数名）
@@ -22,29 +51,6 @@ services_default
 \---time_service
         setting.yaml
         __init__.py
-```
-返回的Service字典如下：
-```
-{'micro_service': 's_default',                                                          # 启动的微服务名字
- 'service_group': 'services_default',                                                   # 载入的service_group名
- 'enable': ['caculate_service', 'time_service'],                                        # 这个service_group中需要载入的service pkg
- 'services': {'calculate__add': {                                                       # 对外发布的独立服务名称： calculate__add
-                                 'function': <function add at 0x00000000029C7AC8>,      # 发布的函数：   add                                              
-                                 'service_base_name': 'calculate',                      # 服务空间名：   calculate                        
-                                 'service_from_pkg': 'caculate_service',                # 从caculate_service导出来的                                
-                                 'version': 1.0},                                       # 版本号        
-              'calculate__minus': {'function': <function minus at 0x00000000029C7B38>,                                          
-                                   'service_base_name': 'calculate',                                            
-                                   'service_from_pkg': 'caculate_service',                                          
-                                   'version': 1.0},
-              'time__add': {'function': <function add at 0x00000000029C7EB8>,
-                            'service_base_name': 'time',
-                            'service_from_pkg': 'time_service',
-                            'version': 1.1},
-              'time__transfer': {'function': <function transfer at 0x00000000029C7F28>,
-                                 'service_base_name': 'time',
-                                 'service_from_pkg': 'time_service',
-                                 'version': 1.1}}}
 ```
 ---
 ### update: 2017年5月26日

@@ -3,5 +3,9 @@
 """
 @version: 
 @author:
-@time: 2017/5/25 15:53
+@time: 2017/6/5 17:27
 """
+
+
+def h(a):
+    return a

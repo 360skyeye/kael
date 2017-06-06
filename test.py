@@ -65,7 +65,10 @@ def c():
 
 @cli.command()
 def p():
-    w = WORK_FRAME("test", auri=AMQ_URI)
+    cur_dir = os.path.realpath('.')
+    conf_dir = os.path.join(cur_dir, 'services_default', 'setting.yaml')
+    print conf_dir
+    w = WORK_FRAME("test", auri=AMQ_URI, service_group_conf=conf_dir)
     w.frame_start()
     # server = micro_server("serive_webservice", auri=AMQ_URI)
     # print server.web_proxy.src
@@ -85,6 +88,11 @@ def pc():
     print r
     time.sleep(3)
     print server.get_response(r)
+
+    # r = server.command("update_service", 'calculate__add', '1')
+    # time.sleep(3)
+    # print server.get_response(r)
+    # print server.calculate__add(10, 20)
 
 
 if __name__ == "__main__":

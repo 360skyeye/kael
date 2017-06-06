@@ -1,3 +1,0 @@
-micro_service: s1
-enable:
-  - sleep_service

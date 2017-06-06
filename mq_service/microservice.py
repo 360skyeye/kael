@@ -60,7 +60,10 @@ class micro_server(MQ):
     def stop(self):
         # 停止所有子进程
         for pid, pro in self.pro.iteritems():
-            pro.terminate()
+            try:
+                pro.terminate()
+            except Exception as e:
+                print e
 
     def restart(self, n=1, daemon=True):
         self.stop()
