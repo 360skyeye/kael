@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/5/20
 
+import copy
 import inspect
 import os
+import time
 import uuid
+import zipfile
+from StringIO import StringIO
+
 import gevent.monkey
 from gevent.pool import Pool
+
 from microservice import micro_server
 from mq_service.service_manage import get_service_group
-import time
-import copy
 
 gevent.monkey.patch_all()
 
@@ -151,6 +155,19 @@ class WORK_FRAME(micro_server):
             data.pop("services")
             rdata = {service: data}
         return rdata
+
+    @Command
+    def zip_pkg(self, pkg_path):
+        tmp = StringIO()
+        with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as z:
+            for root, dirs, files in os.walk(pkg_path):
+                for f in files:
+                    z.write(os.path.join(root, f), compress_type=zipfile.ZIP_DEFLATED)
+        print tmp.getvalue()
+        return tmp.getvalue()
+
+    def update_pkg_from(self, server_id, pkg_path):
+        pass
 
 
 def main():
