@@ -61,6 +61,13 @@ class WORK_FRAME(micro_server):
         body = self.decode_body(body)
         args, kwargs = body
         rtk = method.routing_key.replace(self.command_prefix, "")
+        buf = rtk.split("@")
+        rtk = buf[0]
+        if len(buf) > 1:
+            id = buf[1]
+            if self.command_q != id:
+                print "no match id"
+                return
         fn = self.command_fun.get(rtk)
         if fn:
             result = fn(*args, **kwargs)
@@ -71,10 +78,12 @@ class WORK_FRAME(micro_server):
             # print props.reply_to
             # self.pool.spawn(fn,*args,**kwargs)
 
-    def command(self, name=None, *args, **kwargs):
+    def command(self, name=None, id=None, *args, **kwargs):
         """work frame客户端命令调用函数"""
         if name and name in self.command_fun:
             topic = "{0}{1}".format(self.command_prefix, name)
+            if id:
+                topic = "{0}{1}@{2}".format(self.command_prefix, name, id)
             qid = "command_{0}.{1}.{2}".format(self.command_q, name, uuid.uuid4())
             self.create_queue(qid, exclusive=True, auto_delete=True, )
             self.push_msg(qid, topic=topic, msg=(args, kwargs), ttl=15)
