@@ -190,6 +190,7 @@ class WORK_FRAME(micro_server):
 
     def deplay_update_from_to(self, from_server_id, to_server_id, service_pkg, timeout=5):
         r = self.command('update_pkg', from_server_id, service_pkg, id=to_server_id, timeout=timeout)
+        print r
         # data = self.get_response(r, timeout=timeout)
 
 
