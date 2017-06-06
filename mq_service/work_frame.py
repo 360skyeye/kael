@@ -174,26 +174,25 @@ class WORK_FRAME(micro_server):
         tmp.close()
         os.chdir(cwd)
         print '--- leave zip ---'
-        return {'path': pkg_path, 'content': res}
+        return res
 
     @Command
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
         print '--- Enter update pkg ---'
         if from_server_id == self.command_q:
-            return {'msg': 'e'}
+            return 'I am the source code'
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
         if not data:
-            return {'msg': 'e'}
+            return 'ERR: No Zip Content from get_response'
 
-        content = data[from_server_id].get('content')
-        # source_server_path = data[from_server_id].get('path')
+        content = data[from_server_id]
         self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
         if not self_server_path:
-            return {'msg': 'No Service In Server: {}, Cannot update'.format(self.command_q)}
+            return 'ERR: No Service In Server: {}, Cannot update'.format(self.command_q)
         if not content:
-            return {'msg': 'e'}
+            return 'ERR: No Zip Content'
 
         tmp = BytesIO()
         tmp.write(content)
@@ -209,6 +208,7 @@ class WORK_FRAME(micro_server):
         tmp.close()
         os.chdir(cwd)
         print '--- Leave update pkg ---'
+        return 'update ok'
 
     def update_service(self, service_pkg, version=None, id=None, timeout=5):
         fid = None
