@@ -4,12 +4,11 @@
 import inspect
 import os
 import uuid
-
 import gevent.monkey
 from gevent.pool import Pool
-
 from microservice import micro_server
 from mq_service.service_manage import get_service_group
+import time
 
 gevent.monkey.patch_all()
 
@@ -77,9 +76,9 @@ class WORK_FRAME(micro_server):
             self.push_msg(qid, topic=topic, msg=(args, kwargs), ttl=15)
             return qid
 
-    def get_response(self, qid, timeout=5):
+    def get_response(self, qid, timeout=0):
         """work frame 客户端结果获取函数"""
-        # time.sleep(timeout)
+        if timeout: time.sleep(timeout)
         ch = self.connection.channel()
         ctx = self.pull_msg(qid=qid, session=ch)
         return {i[1].reply_to: i[-1] for i in ctx}
@@ -100,8 +99,19 @@ class WORK_FRAME(micro_server):
             fun = getattr(self, func)
             self.command_fun.setdefault(func, fun)
 
-    def get_last_version(self,service=None):
-        r=self.command("get_service_version",)
+    def get_last_version(self, service=None, timeout=5):
+        r = self.command("get_service_version", service=service)
+        # time.sleep(timeout)
+        data = self.get_response(r, timeout=timeout, )
+        last_dict = {}
+        for id in data:
+            for service in data[id]:
+                t = last_dict.get(service)
+                if t and data[id][service]["version"] > t[0]:
+                    last_dict[service][0] = data[id][service]["version"]
+                else:
+                    last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
+        return last_dict
 
     @Command
     def system(self, cmd):
@@ -116,18 +126,14 @@ class WORK_FRAME(micro_server):
         return 'restart ok'
 
     @Command
-    def get_service_version(self,service=None):
-        data={"id":self.command_q,}
-        rdata={}
+    def get_service_version(self, service=None):
+        rdata = {}
         if not service:
             for i in self.loaded_services['service_pkg']:
-                rdata.setdefault(i,self.loaded_services['service_pkg'][i])
+                rdata.setdefault(i, self.loaded_services['service_pkg'][i])
         else:
-            rdata={service:self.loaded_services['service_pkg'][service]}
-        data["services"] = rdata
-        return data
-
-
+            rdata = {service: self.loaded_services['service_pkg'][service]}
+        return rdata
 
 
 def main():
