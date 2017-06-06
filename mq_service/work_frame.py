@@ -7,7 +7,7 @@ import os
 import time
 import uuid
 import zipfile
-from StringIO import StringIO
+from io import BytesIO
 
 import gevent.monkey
 from gevent.pool import Pool
@@ -49,7 +49,7 @@ class WORK_FRAME(micro_server):
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
         print 'WORK FRAME START'
-        # print self.command_q
+        print self.command_q
         self.init_service()
         self.start(process_num, daemon=daemon)
         channel = self.connection.channel()
@@ -155,18 +155,42 @@ class WORK_FRAME(micro_server):
         return rdata
 
     @Command
-    def zip_pkg(self, pkg_path):
-        # print 'enter zip================'
-        tmp = StringIO()
+    # def zip_pkg(self, pkg_path):
+    def zip_pkg(self, service_pkg):
+        print 'enter zip================'
+        pkg_path = self.loaded_services['service_pkg'][service_pkg]['path']
+
+        tmp = BytesIO()
         with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, dirs, files in os.walk(pkg_path):
                 for f in files:
                     z.write(os.path.join(root, f), compress_type=zipfile.ZIP_DEFLATED)
-        print tmp.getvalue()
-        return tmp.getvalue()
 
-    def update_pkg_from(self, server_id, pkg_path):
-        pass
+        res = tmp.getvalue()
+        tmp.close()
+        print 'out zip================'
+        return res
+        # return tmp.getvalue()
+
+    @Command
+    def update_pkg(self, from_server_id, service_pkg, timeout=5):
+        """被更新服务端发起"""
+        print '--- enter update pkg ---'
+        r = self.command('zip_pkg', service_pkg, id=from_server_id)
+        data = self.get_response(r, timeout=timeout)
+        value = data[from_server_id]
+        if value:
+            tmp = BytesIO()
+            tmp.write(value)
+            z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
+            print z.namelist()
+            # todo 释放文件部署
+            z.close()
+            tmp.close()
+
+    def deplay_update_from_to(self, from_server_id, to_server_id, service_pkg, timeout=5):
+        r = self.command('update_pkg', from_server_id, service_pkg, id=to_server_id, timeout=timeout)
+        # data = self.get_response(r, timeout=timeout)
 
 
 def main():
