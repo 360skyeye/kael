@@ -161,35 +161,53 @@ class WORK_FRAME(micro_server):
         print '--- enter zip ---'
         pkg_path = self.loaded_services['service_pkg'][service_pkg]['path']
         tmp = BytesIO()
+        cwd = os.getcwd()
+        os.chdir(pkg_path)
         with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as z:
-            for root, dirs, files in os.walk(pkg_path):
+            for root, dirs, files in os.walk('.'):
                 for f in files:
-                    z.write(os.path.join(root, f), compress_type=zipfile.ZIP_DEFLATED)
+                    if f.split('.')[-1] != 'pyc':
+                        print os.path.join(root, f)
+                        z.write(os.path.join(root, f), compress_type=zipfile.ZIP_DEFLATED)
 
         res = tmp.getvalue()
         tmp.close()
+        os.chdir(cwd)
         print '--- leave zip ---'
-        return res
+        return {'path': pkg_path, 'content': res}
 
     @Command
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
         print '--- Enter update pkg ---'
         if from_server_id == self.command_q:
-            return
+            return {'msg': 'e'}
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
-        value = data[from_server_id]
-        if value:
-            tmp = BytesIO()
-            tmp.write(value)
-            z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
-            print 'zip file list'
-            for i in z.namelist():
-                print i
-            # todo 释放文件部署
-            z.close()
-            tmp.close()
+        if not data:
+            return {'msg': 'e'}
+
+        content = data[from_server_id].get('content')
+        source_server_path = data[from_server_id].get('path')
+        self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
+        if not self_server_path:
+            return {'msg': 'No Service In Server: {}, Cannot update'.format(self.command_q)}
+        if not content:
+            return {'msg': 'e'}
+
+        tmp = BytesIO()
+        tmp.write(content)
+        z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
+
+        cwd = os.getcwd()
+        os.chdir(self_server_path)
+        print 'zip file list'
+        for i in z.namelist():
+            print i
+        z.extractall()
+        z.close()
+        tmp.close()
+        os.chdir(cwd)
         print '--- Leave update pkg ---'
 
     def update_service(self, service_pkg, version=None, id=None, timeout=5):
