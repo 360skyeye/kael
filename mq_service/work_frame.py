@@ -20,7 +20,6 @@ gevent.monkey.patch_all()
 
 def Command(func):
     def warp(cls, *args, **kwargs):
-        # cls.actions.setdefault(func.__name__,func)
         return func(cls, *args, **kwargs)
 
     return warp
@@ -57,7 +56,6 @@ class WORK_FRAME(micro_server):
         channel.basic_consume(self.process_command,
                               queue=self.command_q, no_ack=False)
         channel.start_consuming()
-        # self.pool.join()
 
     def process_command(self, ch, method, props, body):
         """server中的命令执行函数"""
@@ -76,14 +74,14 @@ class WORK_FRAME(micro_server):
         if fn:
             result = fn(*args, **kwargs)
             rbody = result
-            # print rbody
             self.push_msg(qid=self.command_q, topic="", msg=rbody, reply_id=props.correlation_id, session=ch,
                           to=props.reply_to)
-            # print props.reply_to
-            # self.pool.spawn(fn,*args,**kwargs)
 
-    def command(self, name=None, id=None, *args, **kwargs):
+    def command(self, name=None, *args, **kwargs):
         """work frame客户端命令调用函数"""
+        id = kwargs.get("id")
+        if id:
+            kwargs.pop("id")
         if name and name in self.command_fun:
             topic = "{0}{1}".format(self.command_prefix, name)
             if id:
