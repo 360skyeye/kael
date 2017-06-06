@@ -173,20 +173,26 @@ class WORK_FRAME(micro_server):
     def update_pkg(self, from_server_id, service_pkg, timeout=5):
         """被更新服务端发起"""
         print '--- Enter update pkg ---'
+        # from_server_id not given, find newest code
+        # if not from_server_id:
+        #     self.get_last_version()
+        if from_server_id == self.command_q:
+            return
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
-        value = data[from_server_id]
-        if value:
-            tmp = BytesIO()
-            tmp.write(value)
-            z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
-            print 'zip file list'
-            for i in z.namelist():
-                print i
-            # todo 释放文件部署
-            z.close()
-            tmp.close()
-        print '--- Leave update pkg ---'
+        if data:
+            value = data[from_server_id]
+            if value:
+                tmp = BytesIO()
+                tmp.write(value)
+                z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
+                print 'zip file list'
+                for i in z.namelist():
+                    print i
+                # todo 释放文件部署
+                z.close()
+                tmp.close()
+            print '--- Leave update pkg ---'
 
 
 def main():
