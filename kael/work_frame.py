@@ -155,9 +155,12 @@ class WORK_FRAME(micro_server):
                 data.pop("services")
                 rdata.setdefault(i, data)
         else:
-            data = copy.deepcopy(self.loaded_services['service_pkg'][service])
-            data.pop("services")
-            rdata = {service: data}
+            if service not in self.loaded_services['service_pkg']:
+                rdata = {}
+            else:
+                data = copy.deepcopy(self.loaded_services['service_pkg'][service])
+                data.pop("services")
+                rdata = {service: data}
         return rdata
 
     @Command
@@ -230,6 +233,7 @@ class WORK_FRAME(micro_server):
         # check whether service is installed
         if service_pkg in self.loaded_services.get('service_pkg', {}):
             return 'Service <{}> has been installed on server {}'.format(service_pkg, self.command_q)
+
         if not os.path.exists(install_path):
             try:
                 os.makedirs(install_path)
