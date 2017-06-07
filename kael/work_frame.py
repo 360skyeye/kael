@@ -13,7 +13,7 @@ import gevent.monkey
 from gevent.pool import Pool
 
 from microservice import micro_server
-from mq_service.service_manage import get_service_group
+from service_manage import get_service_group
 
 gevent.monkey.patch_all()
 

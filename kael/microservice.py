@@ -15,7 +15,7 @@ import pika
 from gevent.pool import Pool
 from termcolor import colored
 
-from mq_service import MQ
+from kael import MQ
 
 gevent.monkey.patch_all()
 
