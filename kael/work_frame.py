@@ -245,7 +245,7 @@ class WORK_FRAME(micro_server):
         return res
 
     # 上层控制函数
-    def _update_and_install_service(self, service_pkg, version=None, id=None, timeout=5):
+    def _get_source_service_server_id(self, service_pkg, version=None, timeout=5):
         fid = None
         if not version:
             v = self.get_last_version(service_pkg, ).get(service_pkg)
@@ -261,16 +261,18 @@ class WORK_FRAME(micro_server):
         return fid
 
     def update_service(self, service_pkg, version=None, id=None, timeout=5):
-        fid = self._update_and_install_service(service_pkg, version=version, id=id, timeout=timeout)
+        fid = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
         if fid:
             r = self.command("update_pkg", fid, service_pkg, id=id, timeout=timeout)
             data = self.get_response(r, timeout=timeout)
             return data
 
     def install_service(self, service_pkg, service_install_path, version=None, id=None, timeout=5):
-        self._update_and_install_service(service_pkg, version=version, id=id, timeout=timeout)
-
-        return
+        fid = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
+        if fid:
+            r = self.command("install_pkg", fid, service_pkg, install_path=service_install_path, id=id, timeout=timeout)
+            data = self.get_response(r, timeout=timeout)
+            return data
 
 
 def main():
