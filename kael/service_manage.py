@@ -138,6 +138,4 @@ def update_service_group(conf, service_install_path):
         group_setting = conf
         group_setting.setdefault('path', []).append(service_install_path)
 
-    print '=============update_service_group'
-    print group_setting
     return group_setting
