@@ -129,7 +129,9 @@ def update_service_group(conf, service_install_path):
     if type(conf) in (str, unicode):
         with open(conf) as f:
             group_setting = yaml.load(f.read())
-            group_setting.setdefault('path', []).append(service_install_path)
+            group_setting.setdefault('path', [])
+            if service_install_path not in group_setting['path']:
+                group_setting['path'].append(service_install_path)
 
         with open(conf, 'w') as f:
             f.write(yaml.dump(group_setting))

@@ -234,6 +234,7 @@ class WORK_FRAME(micro_server):
         if service_pkg in self.loaded_services.get('service_pkg', {}):
             return 'Service <{}> has been installed on server {}'.format(service_pkg, self.command_q)
 
+        # install_path为相对路径时，更改为绝对路径
         if install_path.split(os.path.sep)[0] in ['.', '..'] and type(self.service_group_conf) in (str, unicode):
             service_group_dir = os.path.dirname(os.path.realpath(self.service_group_conf))
             install_path = os.path.realpath(os.path.join(service_group_dir, install_path))
