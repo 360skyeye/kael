@@ -1,12 +1,20 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/2
-import pika
+"""
+@version:
+@author:
+@time: 2017/5/2
+"""
+import errno
+import os
+import signal
 import uuid
 from functools import wraps
+
 import msgpack
-import signal
-import os
-import errno
+import pika
+
+__all__ = ['MQ']
 
 
 def map_func(data, fns):
