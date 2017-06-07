@@ -1,5 +1,10 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/10
+"""
+@version:
+@author:
+@time: 2017/5/10
+"""
 import inspect
 import logging
 import os
