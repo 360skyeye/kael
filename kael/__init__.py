@@ -181,7 +181,7 @@ class MQ(object):
 
 
 def main():
-    print "aaaall"
+    pass
 
 
 if __name__ == '__main__':
