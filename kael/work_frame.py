@@ -49,7 +49,7 @@ class WORK_FRAME(micro_server):
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
         print 'WORK FRAME START'
-        print self.command_q
+        print self.command_q, '\n', 30 * '-'
         self.init_service()
         self.start(process_num, daemon=daemon)
         channel = self.connection.channel()
