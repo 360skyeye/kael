@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/5/22
-from mq_service.work_frame import WORK_FRAME
 import time
+
+from kael.work_frame import WORK_FRAME
 
 
 def main():

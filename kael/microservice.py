@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/10
+
 import inspect
 import os
 import signal
@@ -15,7 +15,7 @@ import pika
 from gevent.pool import Pool
 from termcolor import colored
 
-from mq_service import MQ
+from kael import MQ
 
 gevent.monkey.patch_all()
 

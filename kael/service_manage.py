@@ -116,12 +116,3 @@ def get_service_group(conf=None):
             logging.exception(e)
 
     return Services
-
-
-if __name__ == '__main__':
-    print 10 * '=' + 'SERVICES' + 10 * '=', '\n'
-    from pprint import pprint
-
-    conf = '/home/zhangmengyang/project/mq-service/services_default/setting.yaml'
-    ss = get_service_group(conf)
-    pprint(ss)

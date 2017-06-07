@@ -7,8 +7,8 @@ import time
 
 import click
 
-from mq_service.microservice import micro_server
-from mq_service.work_frame import WORK_FRAME
+from kael.microservice import micro_server
+from kael.work_frame import WORK_FRAME
 
 path = os.path.abspath(os.path.dirname(__file__))
 if path not in sys.path:
@@ -89,10 +89,21 @@ def pc():
     time.sleep(3)
     print server.get_response(r)
 
-    # r = server.command("update_service", 'calculate__add', '1')
+
+@cli.command()
+def z():
+    server = WORK_FRAME("test1", auri=AMQ_URI)
+    # r = server.command('zip_pkg', '/home/zhangmengyang/project/mq-service/services_default/')
+    # print r
     # time.sleep(3)
     # print server.get_response(r)
-    # print server.calculate__add(10, 20)
+    # latest = server.get_last_version()
+    # from_id = latest[service][2]
+    # to_id = 'test-ce3b94fc-e42a-4ba7-b9dd-c6df2449c852'
+    # server.command('update_pkg', 'test1-00cc014b-23e7-4c04-bed1-1cf578f70c8d', service, timeout=5)
+    service = 'calculate'
+    print server.get_last_version(service)
+    print server.update_service(service)
 
 
 if __name__ == "__main__":
