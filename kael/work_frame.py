@@ -222,10 +222,7 @@ class WORK_FRAME(micro_server):
 
 
 def main():
-    AMQ_URI = "amqp://user:3^)NB@101.199.126.121:5672/api"
-    w = WORK_FRAME("test", auri=AMQ_URI)
-    w.start()
-    # w.command("system", "ls -la /")
+    pass
 
 
 if __name__ == '__main__':
