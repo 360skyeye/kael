@@ -1,8 +1,6 @@
---trusted-host pypi.douban.com
---index-url http://pypi.douban.com/simple/
-
-gevent
-termcolor
-pika
-msgpack-python
-PyYAML
+gevent==1.2.2
+greenlet==0.4.12
+msgpack-python==0.4.8
+pika==0.10.0
+termcolor==1.1.0
+PyYAML==3.12

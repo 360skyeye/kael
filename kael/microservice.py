@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/10
+
 import inspect
 import os
 import signal

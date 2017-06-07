@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/2
+
 import pika
 import uuid
 from functools import wraps
@@ -173,7 +173,7 @@ class MQ(object):
 
 
 def main():
-    print "aaaall"
+    pass
 
 
 if __name__ == '__main__':
