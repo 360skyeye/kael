@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='kael',
-    version="0.0.1",
+    version="0.0.2",
     url='https://github.com/360skyeye',
     license='Apache-2.0',
     author='360skyeye',
