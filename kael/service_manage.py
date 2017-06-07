@@ -116,3 +116,28 @@ def get_service_group(conf=None):
             logging.exception(e)
 
     return Services
+
+
+def update_service_group(conf, service_install_path):
+    """
+    install service时，需要在服务包配置文件里面增加service_install_path
+    :param conf:
+    :param service_install_path:
+    :return:
+    """
+    group_setting = None
+    if type(conf) in (str, unicode):
+        with open(conf) as f:
+            group_setting = yaml.load(f.read())
+            group_setting.setdefault('path', []).append(service_install_path)
+
+        with open(conf, 'w') as f:
+            f.write(yaml.dump(group_setting))
+
+    elif type(conf) is dict:
+        group_setting = conf
+        group_setting.setdefault('path', []).append(service_install_path)
+
+    print '=============update_service_group'
+    print group_setting
+    return group_setting
