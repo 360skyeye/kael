@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/5/22
-import time
-
-from kael.work_frame import WORK_FRAME
 from kael.producer import Producer
 
 
