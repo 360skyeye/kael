@@ -1,8 +1,13 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/20
-
+"""
+@version:
+@author:
+@time: 2017/5/20
+"""
 import copy
 import inspect
+import logging
 import os
 import time
 import uuid
@@ -13,7 +18,7 @@ import gevent.monkey
 from gevent.pool import Pool
 
 from microservice import micro_server
-from service_manage import get_service_group
+from service_manage import get_service_group, update_service_group
 
 gevent.monkey.patch_all()
 
@@ -172,9 +177,17 @@ class WORK_FRAME(micro_server):
         os.chdir(cwd)
         return res
 
-    @Command
-    def update_pkg(self, from_server_id, service_pkg, timeout=5):
-        """被更新服务端发起"""
+    def _update_and_install_pkg(self, from_server_id, service_pkg, install_path=None, timeout=5):
+        """
+        被更新服务端发起, 更新服务不需要install_path， 安装服务需要install_path
+        update service -->  install_path=None, use existed path
+        install service --> install_path is not None, use install_path
+        :param from_server_id: source code provider server id
+        :param service_pkg: the service name which needed update or install
+        :param install_path: if service not exist in server, need install_path to deploy
+        :param timeout:
+        :return: execution message
+        """
         if from_server_id == self.command_q:
             return 'I am the source code'
         r = self.command('zip_pkg', service_pkg, id=from_server_id)
@@ -183,25 +196,56 @@ class WORK_FRAME(micro_server):
             return 'ERR: No Zip Content from get_response'
 
         content = data[from_server_id]
-        self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
-        if not self_server_path:
-            return 'ERR: No Service In Server: {}, Cannot update'.format(self.command_q)
         if not content:
-            return 'ERR: No Zip Content'
+            return 'ERR: No Zip Content. From {}, To {}'.format(from_server_id, self.command_q)
 
-        tmp = BytesIO()
-        tmp.write(content)
-        z = zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED)
+        # update service -->  install_path=None, use existed path
+        # install service --> install_path is not None, use install_path
+        self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
+        if not self_server_path and not install_path:
+            return 'ERR: Server {}: No Service AND No install_path. Cannot update or install'.format(self.command_q)
+
+        if install_path:
+            self_server_path = install_path
 
         cwd = os.getcwd()
         os.chdir(self_server_path)
-        z.extractall()
-        z.close()
-        tmp.close()
+        with BytesIO() as tmp:
+            tmp.write(content)
+            with zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED) as z:
+                try:
+                    z.extractall()
+                except Exception as e:
+                    logging.exception(e)
+                    return 'ERR: extract failed, {}'.format(e.message)
         os.chdir(cwd)
         return 'update ok'
 
-    def update_service(self, service_pkg, version=None, id=None, timeout=5):
+    @Command
+    def update_pkg(self, from_server_id, service_pkg, timeout=5):
+        return self._update_and_install_pkg(from_server_id, service_pkg, timeout=timeout)
+
+    @Command
+    def install_pkg(self, from_server_id, service_pkg, install_path, timeout=5):
+        # check whether service is installed
+        if service_pkg in self.loaded_services.get('service_pkg', {}):
+            return 'Service <{}> has been installed on server {}'.format(service_pkg, self.command_q)
+        if not os.path.exists(install_path):
+            try:
+                os.makedirs(install_path)
+            except Exception as e:
+                logging.exception(e)
+                return 'ERR: install fail, cannot make dir {}. {}'.format(install_path, e.message)
+
+        res = self._update_and_install_pkg(from_server_id, service_pkg, install_path, timeout=timeout)
+        if res != 'update ok':
+            return res
+        # install service: 需将service group载入的文件更新(只针对配置文件启动)
+        update_service_group(self.service_group_conf, install_path)
+        return res
+
+    # 上层控制函数
+    def _update_and_install_service(self, service_pkg, version=None, id=None, timeout=5):
         fid = None
         if not version:
             v = self.get_last_version(service_pkg, ).get(service_pkg)
@@ -215,10 +259,19 @@ class WORK_FRAME(micro_server):
                     if version == data[id][service]["version"]:
                         fid = ids
                         break
+        return fid
+
+    def update_service(self, service_pkg, version=None, id=None, timeout=5):
+        fid = self._update_and_install_service(service_pkg, version=version, id=id, timeout=timeout)
         if fid:
             r = self.command("update_pkg", fid, service_pkg, id=id, timeout=timeout)
             data = self.get_response(r, timeout=timeout)
             return data
+
+    def install_service(self, service_pkg, service_install_path, version=None, id=None, timeout=5):
+        self._update_and_install_service(service_pkg, version=version, id=id, timeout=timeout)
+
+        return
 
 
 def main():
