@@ -254,11 +254,10 @@ class WORK_FRAME(micro_server):
         else:
             r = self.command("get_service_version", service=service_pkg)
             data = self.get_response(r, timeout=timeout, )
-            for ids in data:
-                for service in data[id]:
-                    if version == data[id][service]["version"]:
-                        fid = ids
-                        break
+            for server_id, service in data.iteritems():
+                if version == service[service_pkg]["version"]:
+                    fid = server_id
+                    break
         return fid
 
     def update_service(self, service_pkg, version=None, id=None, timeout=5):
