@@ -1,6 +1,6 @@
 
 service_base_name: calculate
-version: 1.0
+version: 1.8
 publish:
   - add
   - minus
