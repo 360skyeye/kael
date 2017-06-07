@@ -98,12 +98,12 @@ def z():
     # time.sleep(3)
     # print server.get_response(r)
     # latest = server.get_last_version()
-    service = 'calculate'
     # from_id = latest[service][2]
     # to_id = 'test-ce3b94fc-e42a-4ba7-b9dd-c6df2449c852'
     # server.command('update_pkg', 'test1-00cc014b-23e7-4c04-bed1-1cf578f70c8d', service, timeout=5)
-    print server.get_last_version('calculate')
-    print server.update_service('calculate')
+    service = 'calculate'
+    print server.get_last_version(service)
+    print server.update_service(service)
 
 
 if __name__ == "__main__":
