@@ -1,6 +1,12 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+"""
+@version:
+@author:
+@time: 2017/5/10
+"""
 import inspect
+import logging
 import os
 import signal
 import sys
@@ -46,7 +52,7 @@ class micro_server(MQ):
                 raise
 
     def start(self, n=1, daemon=True):
-        print 'MICRO START'
+        print 'MICRO START', '\n', 30 * '-'
         # 防止子进程terminate后变为僵尸进程
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
@@ -63,7 +69,7 @@ class micro_server(MQ):
             try:
                 pro.terminate()
             except Exception as e:
-                print e
+                logging.exception(e)
 
     def restart(self, n=1, daemon=True):
         self.stop()
@@ -108,20 +114,17 @@ class micro_server(MQ):
         def haha(*args, **kwargs):
             args = list(args[:])
             ch, method, props, body = args[0:4]
-            # print repr(body)
             body = self.decode_body(body)
             args[3] = body
             ch.basic_ack(delivery_tag=method.delivery_tag)
             f = self.make_co(fn)
             greend = self.pool.spawn(f, *args, **kwargs)
-            # print "cosumer done"
             return greend
 
         return haha
 
     def make_co(self, fn):
         def warp(*args, **kwargs):
-            # print kwargs
             ch, method, props, body = args[0:4]
             ctx = {"ch": ch, "method": method, "props": props, "body": body}
             dargs, dkwargs = body
@@ -154,6 +157,7 @@ class micro_server(MQ):
             @wraps(fn)
             def wrapper(*args, **kwargs):
                 pass
+
             return wrapper
 
         return process

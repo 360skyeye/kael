@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+from pprint import pprint
 
 import click
 
@@ -92,18 +93,20 @@ def pc():
 
 @cli.command()
 def z():
-    server = WORK_FRAME("test1", auri=AMQ_URI)
-    # r = server.command('zip_pkg', '/home/zhangmengyang/project/mq-service/services_default/')
-    # print r
-    # time.sleep(3)
-    # print server.get_response(r)
-    # latest = server.get_last_version()
-    # from_id = latest[service][2]
-    # to_id = 'test-ce3b94fc-e42a-4ba7-b9dd-c6df2449c852'
-    # server.command('update_pkg', 'test1-00cc014b-23e7-4c04-bed1-1cf578f70c8d', service, timeout=5)
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    service = 'calculate'
+    r = server.command("get_service_version", service)
+    pprint(server.get_response(r, timeout=5, ))
+    # print server.get_last_version(service)
+    # print server.update_service(service, version=1.8)
+
+
+@cli.command()
+def install():
+    server = WORK_FRAME("test", auri=AMQ_URI)
     service = 'calculate'
     print server.get_last_version(service)
-    print server.update_service(service)
+    print server.install_service(service, './caccu')
 
 
 if __name__ == "__main__":
