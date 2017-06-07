@@ -1,12 +1,20 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/2
-import pika
+"""
+@version:
+@author:
+@time: 2017/5/2
+"""
+import errno
+import os
+import signal
 import uuid
 from functools import wraps
+
 import msgpack
-import signal
-import os
-import errno
+import pika
+
+__all__ = ['MQ']
 
 
 def map_func(data, fns):
@@ -147,7 +155,9 @@ class MQ(object):
         return msg_id
 
     @session
-    def create_queue(self, qid, ttl=0, session=None, args={}, **kwargs):
+    def create_queue(self, qid, ttl=0, session=None, args=None, **kwargs):
+        if not args:
+            args = {}
         if ttl:
             args.update({"x-message-ttl": ttl * 1000})
         return session.queue_declare(queue=qid, arguments=args, **kwargs)
@@ -171,7 +181,7 @@ class MQ(object):
 
 
 def main():
-    print "aaaall"
+    pass
 
 
 if __name__ == '__main__':

@@ -1,18 +1,27 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/5/10
-from mq_service import MQ
-from functools import wraps
-from uuid import uuid4
-from multiprocessing import Process
-from gevent.pool import Pool
-import gevent.monkey
-import os
-from termcolor import colored
-import sys
-import fcntl
-import pika
+"""
+@version:
+@author:
+@time: 2017/5/10
+"""
 import inspect
+import logging
+import os
+import signal
+import sys
 import time
+from functools import wraps
+from multiprocessing import Process
+from uuid import uuid4
+
+import fcntl
+import gevent.monkey
+import pika
+from gevent.pool import Pool
+from termcolor import colored
+
+from kael import MQ
 
 gevent.monkey.patch_all()
 
@@ -30,8 +39,7 @@ class micro_server(MQ):
         self.LOCK_PATH = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "{0}.lock".format(self.name))
         self.is_running = False
         self.services.setdefault("man", self.man)
-        self.create_queue(self.service_qid("man"), exclusive=False, auto_delete=True, )
-        self.join(self.service_qid("man"), self.service_qid("man"))
+        self.register_all_service_queues()
 
     def single_instance(self):
         try:
@@ -42,6 +50,34 @@ class micro_server(MQ):
                 self.is_running = True
             else:
                 raise
+
+    def start(self, n=1, daemon=True):
+        print 'MICRO START', '\n', 30 * '-'
+        # 防止子进程terminate后变为僵尸进程
+        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+
+        self.register_all_service_queues()
+        for i in range(n):
+            pro = Process(target=self.proc)
+            pro.daemon = daemon
+            pro.start()
+            self.pro.setdefault(pro.pid, pro)
+
+    def stop(self):
+        # 停止所有子进程
+        for pid, pro in self.pro.iteritems():
+            try:
+                pro.terminate()
+            except Exception as e:
+                logging.exception(e)
+
+    def restart(self, n=1, daemon=True):
+        self.stop()
+        # * 需要保证queue一定存在，存在可能：重启之间的时间queue被删除了，那后面监听消费queue会报错
+        # 一种思路是等待一段时间，等queue自动全删完了，再重新建（依赖于auto_delete的响应时间）
+        time.sleep(2)
+
+        self.start(n, daemon)
 
     def proc(self):
         if self.lock:
@@ -58,31 +94,37 @@ class micro_server(MQ):
         self.pool.join()
         return
 
-    def start(self, n=1, daemon=True):
-        for i in range(n):
-            pro = Process(target=self.proc)
-            pro.daemon = daemon
-            pro.start()
-            self.pro.setdefault(pro.pid, pro)
+    def __make_consumer(self, service_name, fn):
+        def consumer():
+            print "server[{2}]        service [{0: ^48}]   @  pid:{1} ".format(self.service_qid(service_name),
+                                                                               colored(os.getpid(), "green"),
+                                                                               colored(self.name, "green"))
+            channel = self.connection.channel()
+            channel.basic_qos(prefetch_count=1)
+            gfn = self.make_gevent_consumer(fn)
+
+            # """Using the Blocking Connection to consume messages from RabbitMQ"""
+            channel.basic_consume(gfn, queue=self.service_qid(service_name), no_ack=False)
+            channel.start_consuming()
+            print colored("---channel-close---", "red")
+
+        return consumer
 
     def make_gevent_consumer(self, fn):
         def haha(*args, **kwargs):
             args = list(args[:])
             ch, method, props, body = args[0:4]
-            # print repr(body)
             body = self.decode_body(body)
             args[3] = body
             ch.basic_ack(delivery_tag=method.delivery_tag)
             f = self.make_co(fn)
             greend = self.pool.spawn(f, *args, **kwargs)
-            # print "cosumer done"
             return greend
 
         return haha
 
     def make_co(self, fn):
         def warp(*args, **kwargs):
-            # print kwargs
             ch, method, props, body = args[0:4]
             ctx = {"ch": ch, "method": method, "props": props, "body": body}
             dargs, dkwargs = body
@@ -97,31 +139,20 @@ class micro_server(MQ):
 
         return warp
 
-    def __make_consumer(self, service_name, fn):
-        def consumer():
-            print "server[{2}]        service [{0: ^48}]   @  pid:{1} ".format(self.service_qid(service_name),
-                                                                               colored(os.getpid(), "green"),
-                                                                               colored(self.name, "green"))
-            channel = self.connection.channel()
-            channel.basic_qos(prefetch_count=1)
-            gfn = self.make_gevent_consumer(fn)
-            channel.basic_consume(gfn,
-                                  queue=self.service_qid(service_name), no_ack=False)
-            channel.start_consuming()
-            print colored("---channel-close---", "red")
-
-        return consumer
-
     def service_qid(self, service_name):
         qid = "{0}.{1}".format(self.name, service_name)
         return qid
 
+    def register_all_service_queues(self):
+        """为所有服务函数创建queue"""
+        for service, fn in self.services.items():
+            qid = self.service_qid(service)
+            self.create_queue(qid, exclusive=False, auto_delete=True, )
+            self.join(qid, qid)
+
     def service(self, service_name, *args, **kwargs):
         def process(fn):
             self.services.setdefault(service_name, fn)
-            qid = self.service_qid(service_name)
-            self.create_queue(qid, exclusive=False, auto_delete=True, )
-            self.join(qid, qid)
 
             @wraps(fn)
             def wrapper(*args, **kwargs):
@@ -133,7 +164,6 @@ class micro_server(MQ):
 
     def rpc(self, service):
         def maker(*args, **kwargs):
-            # print "hahahahahah", service
             qid = kwargs.get("qid")
             if qid:
                 qid = kwargs.pop("qid")
