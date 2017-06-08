@@ -10,7 +10,7 @@ import os
 import signal
 import uuid
 from functools import wraps
-
+import time
 import msgpack
 import pika
 
@@ -69,7 +69,15 @@ class MQ(object):
 
     def connect(self, ):
         aps = pika.URLParameters(self.auri)
-        return pika.BlockingConnection(aps)
+        while 1:
+            try:
+                rc = pika.BlockingConnection(aps)
+            except:
+                print "Retry connect to mq center for in seconds"
+                time.sleep(5)
+                continue
+            break
+        return rc
 
     def encode_body(self, message):
         rdata = msgpack.dumps(message)
@@ -86,7 +94,11 @@ class MQ(object):
             if session:
                 return fn(self, *args, **kwargs)
             else:
-                channel = self.connection.channel()
+                try:
+                    channel = self.connection.channel()
+                except:
+                    self.connection = self.connect()
+                    channel = self.connection.channel()
                 result = fn(self, session=channel, *args, **kwargs)
                 channel.close()
                 return result

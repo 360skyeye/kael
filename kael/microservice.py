@@ -99,13 +99,22 @@ class micro_server(MQ):
             print "server[{2}]        service [{0: ^48}]   @  pid:{1} ".format(self.service_qid(service_name),
                                                                                colored(os.getpid(), "green"),
                                                                                colored(self.name, "green"))
-            channel = self.connection.channel()
+            try:
+                channel = self.connection.channel()
+            except:
+                self.connection = self.connect()
+                channel = self.connection.channel()
             channel.basic_qos(prefetch_count=1)
             gfn = self.make_gevent_consumer(fn)
 
             # """Using the Blocking Connection to consume messages from RabbitMQ"""
             channel.basic_consume(gfn, queue=self.service_qid(service_name), no_ack=False)
-            channel.start_consuming()
+            try:
+                channel.start_consuming()
+            except Exception:
+                self.connection = self.connect()
+                channel = self.connection.channel()
+                channel.start_consuming()
             print colored("---channel-close---", "red")
 
         return consumer
