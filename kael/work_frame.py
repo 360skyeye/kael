@@ -272,6 +272,8 @@ class WORK_FRAME(micro_server):
             r = self.command("get_service_version", service=service_pkg)
             data = self.get_response(r, timeout=timeout, )
             for server_id, service in data.iteritems():
+                if service_pkg not in service:
+                    break
                 if version == service[service_pkg]["version"]:
                     fid = server_id
                     break
