@@ -242,7 +242,7 @@ class WORK_FRAME(micro_server):
     def install_pkg(self, from_server_id, service_pkg, install_path, timeout=5):
         # check whether service is installed
         if service_pkg in self.loaded_services.get('service_pkg', {}):
-            return 'Service <{}> has been installed on server {}'.format(service_pkg, self.command_q)
+            return 'Service <{}> Already on this server'.format(service_pkg, self.command_q)
 
         # install_path为相对路径时，更改为绝对路径
         if install_path.split(os.path.sep)[0] in ['.', '..'] and type(self.service_group_conf) in (str, unicode):
