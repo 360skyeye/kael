@@ -49,7 +49,7 @@ class WORK_FRAME(micro_server):
         self.loaded_services = get_service_group(self.service_group_conf)
         for service_pkg, value in self.loaded_services['service_pkg'].iteritems():
             for service_name, func in value['services'].iteritems():
-                self.services.setdefault(service_name, func)
+                self.services.update({service_name: func})
 
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
@@ -151,8 +151,9 @@ class WORK_FRAME(micro_server):
         return data
 
     @Command
-    def restart_service(self):
-        self.restart(1)
+    def restart_service(self, process_num=2, daemon=True):
+        self.init_service()
+        self.restart(n=process_num, daemon=daemon)
         return 'restart ok'
 
     @Command
@@ -251,8 +252,9 @@ class WORK_FRAME(micro_server):
             try:
                 os.makedirs(install_path)
             except Exception as e:
-                logging.exception(e)
-                return 'ERR: install fail, cannot make dir {}. {}'.format(install_path, e.message)
+                if not os.path.exists(install_path):
+                    logging.exception(e)
+                    return 'ERR: install fail, cannot make dir {}. {}'.format(install_path, e.message)
 
         res = self._update_and_install_pkg(from_server_id, service_pkg, install_path, timeout=timeout)
         if res != 'update ok':
