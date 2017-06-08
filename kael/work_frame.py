@@ -216,7 +216,7 @@ class WORK_FRAME(micro_server):
         # install service --> install_path is not None, use install_path
         self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
         if not self_server_path and not install_path:
-            return 'ERR: Server {}: No Service AND No install_path. Cannot update or install'.format(self.command_q)
+            return 'ERR: No Service AND No install_path. Cannot update or install on {}:'.format(self.command_q)
 
         if install_path:
             self_server_path = install_path
@@ -242,7 +242,7 @@ class WORK_FRAME(micro_server):
     def install_pkg(self, from_server_id, service_pkg, install_path, timeout=5):
         # check whether service is installed
         if service_pkg in self.loaded_services.get('service_pkg', {}):
-            return 'Service <{}> Already on this server'.format(service_pkg, self.command_q)
+            return 'Service <{}> Already on this server'.format(service_pkg)
 
         # install_path为相对路径时，更改为绝对路径
         if install_path.split(os.path.sep)[0] in ['.', '..'] and type(self.service_group_conf) in (str, unicode):
