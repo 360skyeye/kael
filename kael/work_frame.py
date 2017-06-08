@@ -36,7 +36,8 @@ class WORK_FRAME(micro_server):
     def __init__(self, name, service_group_conf=None, app=None, channel="center", lock=False, auri=None):
         super(WORK_FRAME, self).__init__(name, app=app, channel=channel, auri=auri, lock=lock)
         self.command_q = "{0}-{1}".format(self.name, self.id)
-        self.create_queue(self.command_q, ttl=15)
+        # frame停止运行,没有任何consumer消费20s后自动删除command_q
+        self.create_queue(self.command_q, ttl=15, args={'x-expires': 20000})
         self.command_prefix = "skyeye-rpc-{0}.".format(self.name)
         self.join(self.command_q, "{0}*".format(self.command_prefix))
         self.init_command()
