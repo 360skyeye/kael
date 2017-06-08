@@ -62,7 +62,7 @@ class WORK_FRAME(micro_server):
                               queue=self.command_q, no_ack=False)
         try:
             channel.start_consuming()
-        except Exception, e:
+        except Exception:
             self.connection = self.connect()
             channel = self.connection.channel()
             channel.start_consuming()

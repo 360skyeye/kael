@@ -111,7 +111,7 @@ class micro_server(MQ):
             channel.basic_consume(gfn, queue=self.service_qid(service_name), no_ack=False)
             try:
                 channel.start_consuming()
-            except Exception, e:
+            except Exception:
                 self.connection = self.connect()
                 channel = self.connection.channel()
                 channel.start_consuming()
