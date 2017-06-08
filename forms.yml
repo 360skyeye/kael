@@ -1,0 +1,18 @@
+honey.ioc:
+  scan_ip:
+    type: object
+    properties:
+      timestamp:
+        title: "时间"
+        type: string
+        format: timestamp
+      ip:
+        title: "ip地址"
+        type: string
+        format: ipv4
+      event:
+        title: "事件描述"
+        type: string
+
+
+
