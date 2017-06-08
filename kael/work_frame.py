@@ -60,7 +60,12 @@ class WORK_FRAME(micro_server):
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
                               queue=self.command_q, no_ack=False)
-        channel.start_consuming()
+        try:
+            channel.start_consuming()
+        except Exception, e:
+            self.connection = self.connect()
+            channel = self.connection.channel()
+            channel.start_consuming()
 
     def process_command(self, ch, method, props, body):
         """server中的命令执行函数"""
@@ -101,7 +106,11 @@ class WORK_FRAME(micro_server):
         """work frame 客户端结果获取函数"""
         if timeout:
             time.sleep(timeout)
-        ch = self.connection.channel()
+        try:
+            ch = self.connection.channel()
+        except:
+            self.connection = self.connect()
+            ch = self.connection.channel()
         ctx = self.pull_msg(qid=qid, session=ch)
         return {i[1].reply_to: i[-1] for i in ctx}
 
