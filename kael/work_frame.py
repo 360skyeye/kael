@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@version:
-@author:
-@time: 2017/5/20
-"""
 import copy
 import inspect
 import logging
