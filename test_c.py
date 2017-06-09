@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/5/22
-import time
-
-from kael.work_frame import WORK_FRAME
+from kael.producer import Producer
 
 
 def main():
     AMQ_URI = "amqp://user:3^)NB@101.199.126.121:5672/api"
-    w = WORK_FRAME("test", auri=AMQ_URI)
-    # w.start()
-    r = w.command("system", "ls -la /")
-    print r
-    time.sleep(5)
-    print w.get_response(r)
+    P = Producer("test", auri=AMQ_URI, )
+    P.load_schema("forms.yml")
+    data = {"event": "dasdad", "ip": "12.13.12.1", "timestamp": "2013-03-25 21:39:35"}
+    P.pub("honey.ioc", data, schema_type="scan_ip")
 
 
 if __name__ == '__main__':

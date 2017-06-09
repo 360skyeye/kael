@@ -36,7 +36,8 @@ class WORK_FRAME(micro_server):
     def __init__(self, name, service_group_conf=None, app=None, channel="center", lock=False, auri=None):
         super(WORK_FRAME, self).__init__(name, app=app, channel=channel, auri=auri, lock=lock)
         self.command_q = "{0}-{1}".format(self.name, self.id)
-        self.create_queue(self.command_q, ttl=15)
+        # frame停止运行,没有任何consumer消费20s后自动删除command_q
+        self.create_queue(self.command_q, ttl=15, args={'x-expires': 20000})
         self.command_prefix = "skyeye-rpc-{0}.".format(self.name)
         self.join(self.command_q, "{0}*".format(self.command_prefix))
         self.init_command()
@@ -49,7 +50,7 @@ class WORK_FRAME(micro_server):
         self.loaded_services = get_service_group(self.service_group_conf)
         for service_pkg, value in self.loaded_services['service_pkg'].iteritems():
             for service_name, func in value['services'].iteritems():
-                self.services.setdefault(service_name, func)
+                self.services.update({service_name: func})
 
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
@@ -60,7 +61,12 @@ class WORK_FRAME(micro_server):
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
                               queue=self.command_q, no_ack=False)
-        channel.start_consuming()
+        try:
+            channel.start_consuming()
+        except Exception:
+            self.connection = self.connect()
+            channel = self.connection.channel()
+            channel.start_consuming()
 
     def process_command(self, ch, method, props, body):
         """server中的命令执行函数"""
@@ -101,7 +107,11 @@ class WORK_FRAME(micro_server):
         """work frame 客户端结果获取函数"""
         if timeout:
             time.sleep(timeout)
-        ch = self.connection.channel()
+        try:
+            ch = self.connection.channel()
+        except:
+            self.connection = self.connect()
+            ch = self.connection.channel()
         ctx = self.pull_msg(qid=qid, session=ch)
         return {i[1].reply_to: i[-1] for i in ctx}
 
@@ -142,8 +152,9 @@ class WORK_FRAME(micro_server):
         return data
 
     @Command
-    def restart_service(self):
-        self.restart(1)
+    def restart_service(self, process_num=2, daemon=True):
+        self.init_service()
+        self.restart(n=process_num, daemon=daemon)
         return 'restart ok'
 
     @Command
@@ -206,7 +217,7 @@ class WORK_FRAME(micro_server):
         # install service --> install_path is not None, use install_path
         self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
         if not self_server_path and not install_path:
-            return 'ERR: Server {}: No Service AND No install_path. Cannot update or install'.format(self.command_q)
+            return 'ERR: No Service AND No install_path. Cannot update or install on {}:'.format(self.command_q)
 
         if install_path:
             self_server_path = install_path
@@ -232,7 +243,7 @@ class WORK_FRAME(micro_server):
     def install_pkg(self, from_server_id, service_pkg, install_path, timeout=5):
         # check whether service is installed
         if service_pkg in self.loaded_services.get('service_pkg', {}):
-            return 'Service <{}> has been installed on server {}'.format(service_pkg, self.command_q)
+            return 'Service <{}> Already on this server'.format(service_pkg)
 
         # install_path为相对路径时，更改为绝对路径
         if install_path.split(os.path.sep)[0] in ['.', '..'] and type(self.service_group_conf) in (str, unicode):
@@ -242,8 +253,9 @@ class WORK_FRAME(micro_server):
             try:
                 os.makedirs(install_path)
             except Exception as e:
-                logging.exception(e)
-                return 'ERR: install fail, cannot make dir {}. {}'.format(install_path, e.message)
+                if not os.path.exists(install_path):
+                    logging.exception(e)
+                    return 'ERR: install fail, cannot make dir {}. {}'.format(install_path, e.message)
 
         res = self._update_and_install_pkg(from_server_id, service_pkg, install_path, timeout=timeout)
         if res != 'update ok':
@@ -263,6 +275,8 @@ class WORK_FRAME(micro_server):
             r = self.command("get_service_version", service=service_pkg)
             data = self.get_response(r, timeout=timeout, )
             for server_id, service in data.iteritems():
+                if service_pkg not in service:
+                    break
                 if version == service[service_pkg]["version"]:
                     fid = server_id
                     break
