@@ -98,15 +98,15 @@ def z():
     r = server.command("get_service_version", service)
     pprint(server.get_response(r, timeout=5, ))
     # print server.get_last_version(service)
-    # print server.update_service(service, version=1.8)
+    pprint(server.update_service(service, version=1.8))
 
 
 @cli.command()
 def install():
     server = WORK_FRAME("test", auri=AMQ_URI)
     service = 'calculate'
-    print server.get_last_version(service)
-    print server.install_service(service, './caccu')
+    pprint(server.get_last_version(service))
+    pprint(server.install_service(service, './caccu'))
 
 
 if __name__ == "__main__":
