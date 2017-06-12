@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Created by zhangzhuo@360.cn on 17/05/18
 import os
 import sys
 import time
@@ -18,7 +17,7 @@ path = os.path.split(path)
 if path not in sys.path:
     sys.path.insert(0, path[0])
 
-AMQ_URI = "amqp://user:3^)NB@101.199.126.121:5672/api"
+AMQ_URI = os.environ.get('AMQ_URI')
 
 
 @click.group()
