@@ -28,7 +28,13 @@ def Command(func):
 class WORK_FRAME(micro_server):
     command_fun = {}
 
-    def __init__(self, name, service_group_conf=None, app=None, channel="center", lock=False, auri=None):
+    def __init__(self, name=None, service_group_conf=None, app=None, channel="center", lock=False, auri=None):
+        # 指定name最优先，service_group_conf中的service_group次之
+        if not name:
+            if service_group_conf:
+                name = get_service_group(service_group_conf).get('service_group')
+            if not name:
+                raise EnvironmentError('Neither name given nor service_group_conf name given')
         super(WORK_FRAME, self).__init__(name, app=app, channel=channel, auri=auri, lock=lock)
         self.command_q = "{0}-{1}".format(self.name, self.id)
         # frame停止运行,没有任何consumer消费20s后自动删除command_q
