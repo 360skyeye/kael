@@ -33,6 +33,7 @@ class micro_server(MQ):
         self.app = app
         self.lock = lock
         self.services = {}
+        self.crontabs = {}  # {'<cron_name>':{'status':<working, standby>, setting:[] }}
         self.id = str(uuid4())
         self.pro = {}
         self.pid = None
@@ -52,16 +53,21 @@ class micro_server(MQ):
                 raise
 
     def start(self, n=1, daemon=True):
+        """1启动服务 2启动定时任务"""
         print 'MICRO START', '\n', 30 * '-'
         # 防止子进程terminate后变为僵尸进程
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
-
+        # 启动服务
         self.register_all_service_queues()
         for i in range(n):
             pro = Process(target=self.proc)
             pro.daemon = daemon
             pro.start()
             self.pro.setdefault(pro.pid, pro)
+
+        # 启动定时任务
+        for cron_name, cron_content in self.crontabs.iteritems():
+            self.active_crontab(cron_content)
 
     def stop(self):
         # 停止所有子进程
@@ -78,6 +84,11 @@ class micro_server(MQ):
         time.sleep(2)
 
         self.start(n, daemon)
+
+    def active_crontab(self, crontab_content):
+        # todo 0 judge if should write 1 read setting and set
+        # Cron.job.add(crontab_content)
+        pass
 
     def proc(self):
         if self.lock:
