@@ -55,8 +55,6 @@ class WORK_FRAME(micro_server):
 
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
-        print 'WORK FRAME START'
-        print self.command_q, '\n', 80 * '-'
         s = """                                               :      .-.
                       7                         M-   Z.7 O$..-
                ;7.    : ;-!; > -W>.      ;7.?>   $H  H-Q> 7O
@@ -79,6 +77,8 @@ class WORK_FRAME(micro_server):
              H          MC     MM        QN      Q        CMM    M
           !MMMMN         :N      MM7..7MM MNMH    -MM77MHM     QNMNN:"""
         print s
+        print 80 * '-'
+        print 'WORK FRAME START'
         print self.command_q, '\n', 80 * '-'
         self.init_service()
         self.start(process_num, daemon=daemon)

@@ -52,7 +52,7 @@ class micro_server(MQ):
                 raise
 
     def start(self, n=1, daemon=True):
-        print 'MICRO START', '\n', 30 * '-'
+        print 'MICRO START', '\n', 80 * '-'
         # 防止子进程terminate后变为僵尸进程
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
