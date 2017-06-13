@@ -53,6 +53,19 @@ class WORK_FRAME(micro_server):
             for service_name, func in value['services'].iteritems():
                 self.services.update({service_name: func})
 
+    def init_crontabs(self):
+        """frame_start时调用, 调用rpc检查是否已有相同名称的定时任务启动"""
+        self.loaded_crontab = get_service_group(self.service_group_conf)['crontab_pkg']
+        all_servers_crontab_status = self.get_servers_crontab_status()
+        for crontab_pkg, value in self.loaded_crontab.iteritems():
+            need_cron_start = True
+            for server in all_servers_crontab_status[crontab_pkg].keys():
+                if server['status'] == 'working':
+                    need_cron_start = False
+                    break
+            if need_cron_start:
+                self.crontabs[crontab_pkg] = value
+
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
         print 'WORK FRAME START'
@@ -145,6 +158,10 @@ class WORK_FRAME(micro_server):
                     last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
         return last_dict
 
+    def get_servers_crontab_status(self, crontab=None, timeout=5):
+        # todo
+        pass
+
     @Command
     def system(self, cmd):
         output = os.popen(cmd)
@@ -174,6 +191,13 @@ class WORK_FRAME(micro_server):
                 data.pop("services")
                 rdata = {service: data}
         return rdata
+
+    @Command
+    def get_crontab_version(self, crontab=None):
+        # todo
+        if not crontab:
+            for k, v in self.loaded_crontab.iteritems():
+                pass
 
     @Command
     def zip_pkg(self, service_pkg):
