@@ -1,11 +1,19 @@
 """
 kael
 """
+import re
+import ast
 from setuptools import setup
+
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('kael/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
 
 setup(
     name='kael',
-    version="0.0.3",
+    version=version,
     url='https://github.com/360skyeye',
     license='Apache-2.0',
     author='360skyeye',
@@ -22,6 +30,7 @@ setup(
         'pika>=0.10.0',
         'PyYAML>=3.12',
         'termcolor>=1.1.0',
+        'click>=4.0'
     ],
     extras_require={},
     classifiers=[
@@ -36,5 +45,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     entry_points='''
+        [console_scripts]
+        kael=kael.cli:main
     '''
 )
