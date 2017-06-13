@@ -10,10 +10,10 @@ import click
 from kael.microservice import micro_server
 from kael.work_frame import WORK_FRAME
 
-path = os.path.abspath(os.path.dirname(__file__))
-if path not in sys.path:
-    sys.path.insert(0, path)
-path = os.path.split(path)
+file_path = os.path.abspath(os.path.dirname(__file__))
+if file_path not in sys.path:
+    sys.path.insert(0, file_path)
+path = os.path.split(file_path)
 if path not in sys.path:
     sys.path.insert(0, path[0])
 
@@ -65,9 +65,7 @@ def c():
 
 @cli.command()
 def p():
-    cur_dir = os.path.realpath('.')
-    conf_dir = os.path.join(cur_dir, 'services_default', 'setting.yaml')
-    print conf_dir
+    conf_dir = os.path.join(file_path, 'setting.yaml')
     w = WORK_FRAME("test", auri=AMQ_URI, service_group_conf=conf_dir)
     w.frame_start()
     # server = micro_server("serive_webservice", auri=AMQ_URI)
