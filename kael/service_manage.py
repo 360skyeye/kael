@@ -101,7 +101,7 @@ def get_service_group(conf=None):
                     else:
                         crontab_name_exist.add(s['crontab_name'])
                 else:
-                    raise
+                    raise ImportError('type: {} not support <{}>'.format(s.get('type'), setting_file))
 
             # 2.2 找出service_pkg中发布的所有函数，添加到Services字典中
             """
