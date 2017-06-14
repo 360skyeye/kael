@@ -294,11 +294,11 @@ class WORK_FRAME(micro_server):
                     return 'ERR: install fail, cannot make dir {}. {}'.format(install_path, e.message)
 
         res = self._update_and_install_pkg(fid_version, service_pkg, install_path, timeout=timeout)
-        if res != 'update ok':
+        if res.split('.')[0] != 'Update OK':
             return res
         # install service: 需将service group载入的文件更新(只针对配置文件启动)
         update_service_group(self.service_group_conf, install_path)
-        return res
+        return "{}, {}".format(res, install_path)
 
     # 上层控制函数
     def _get_source_service_server_id(self, service_pkg, version=None, timeout=5):
@@ -330,7 +330,7 @@ class WORK_FRAME(micro_server):
         print '--- No Source Server and Version Found ---'
 
     def install_service(self, service_pkg, service_install_path, version=None, id=None, timeout=5):
-        print '--- nstall Service <{}> toＩ Version <{}> ---'.format(service_pkg, version if version else 'latest')
+        print '--- Install Service <{}> toＩ Version <{}> ---'.format(service_pkg, version if version else 'latest')
         fid_version = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
         if fid_version:
             print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
