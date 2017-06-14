@@ -68,7 +68,7 @@ def get_service_group(conf=None):
     #  2进入服务包读取服务配置, 根据group配置中的path字段导出service
     for pkg_path in group_setting['path']:
         try:
-            if pkg_path.split(os.path.sep)[0] in ['.', '..']:
+            if not os.path.isabs(pkg_path):
                 pkg_path = os.path.realpath(os.path.join(service_group_dir, pkg_path))
 
             # 2.1 检查配置中每个服务的Service Base Name是否已存在
