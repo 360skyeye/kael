@@ -54,23 +54,51 @@ class WORK_FRAME(micro_server):
                 self.services.update({service_name: func})
 
     def init_crontabs(self):
-        """frame_start时调用, 调用rpc检查是否已有相同名称的定时任务启动"""
+        """
+        frame_start时调用, 调用rpc检查是否已有相同名称的定时任务启动
+        1 检查其他机器所有cron状态
+        2 对比自身载入的所有crontab。
+        3 存在则设置状态'standby'； 不存在则设置状态'working',并加入微服务层contabs中
+
+        最后self.loaded_crontab的结构：
+        {
+            'print':{
+                'path':'/data/project/mq-service/services_default/task1_crontab',
+                'version': 1.0,
+                'crontabs':[ '1 * * * *  .....', '1 * * * *  .....' ]
+                'status': 'working'
+            }
+            'sql':{
+                'path':'/data/project/mq-service/services_default/sql_crontab',
+                'version': 1.1,
+                'crontabs':[ '1 * * * *  .....', '1 * * * *  .....' ]
+                'status': 'standby'
+            }
+        }
+        """
         self.loaded_crontab = get_service_group(self.service_group_conf)['crontab_pkg']
         all_servers_crontab_status = self.get_servers_crontab_status()
         for crontab_pkg, value in self.loaded_crontab.iteritems():
             need_cron_start = True
             for server in all_servers_crontab_status[crontab_pkg].keys():
-                if server['status'] == 'working':
+                if server.get(crontab_pkg, {})['status'] == 'working':
                     need_cron_start = False
                     break
+            # 所有服务器上没有已启动的<crontab_pkg>
             if need_cron_start:
-                self.crontabs[crontab_pkg] = value
+                value['status'] = 'working'
+                self.crontabs[crontab_pkg] = value['crontabs']
+            else:
+                value['status'] = 'standby'
 
     def frame_start(self, process_num=2, daemon=True):
         """框架启动"""
         print 'WORK FRAME START'
         print self.command_q, '\n', 30 * '-'
+
         self.init_service()
+        self.init_crontabs()
+
         self.start(process_num, daemon=daemon)
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
