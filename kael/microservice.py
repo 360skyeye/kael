@@ -14,6 +14,7 @@ import time
 from functools import wraps
 from multiprocessing import Process
 from uuid import uuid4
+# from crontab import CronTab
 
 import fcntl
 import gevent.monkey
@@ -33,7 +34,7 @@ class micro_server(MQ):
         self.app = app
         self.lock = lock
         self.services = {}
-        self.crontabs = {}  # {'<cron_name>':{'status':<working, standby>, setting:[] }}
+        self.crontabs = {}  # {'<cron_name>': [{'schedule': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
         self.id = str(uuid4())
         self.pro = {}
         self.pid = None
@@ -65,9 +66,9 @@ class micro_server(MQ):
             pro.start()
             self.pro.setdefault(pro.pid, pro)
 
-        # 启动定时任务
-        for cron_name, cron_content in self.crontabs.iteritems():
-            self.active_crontab(cron_content)
+        # 设置定时任务
+        for cron_name, crons in self.crontabs.iteritems():
+            self.active_crontab(cron_name, crons)
 
     def stop(self):
         # 停止所有子进程
@@ -85,9 +86,22 @@ class micro_server(MQ):
 
         self.start(n, daemon)
 
-    def active_crontab(self, crontab_content):
-        # todo 0 judge if should write 1 read setting and set
-        # Cron.job.add(crontab_content)
+    def active_crontab(self, cron_name, crons):
+        """
+        添加cron_name组的所有定时任务，添加用户为执行的用户
+        :param cron_name:
+        :param crons: list [{}]
+        :return:
+        每个cron格式为字典  {'schedule': '1 * * * *', 'command': '/bin/bash /etc/xx/xx.sh >> /data/xx.log'}
+        """
+        # for cron in crons:
+        #     my_user_cron = CronTab(user=True)
+        #     # 创建任务
+        #     job = my_user_cron.new(command=cron.get('command'))
+        #     job.set_comment(cron_name)
+        #     job.setall(cron.get('schedule'))
+        #     job.enable()
+        #     my_user_cron.write()
         pass
 
     def proc(self):

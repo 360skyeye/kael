@@ -2,5 +2,5 @@ type: crontab
 crontab_name: print
 version: 1.0
 publish:
- - '/2 * * * *'
- - '/2 * * * *'
+ - '* * * * *', mysql.py
+ - '* * * * *', print.py
