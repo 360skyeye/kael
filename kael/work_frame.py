@@ -330,7 +330,7 @@ class WORK_FRAME(micro_server):
         print '--- No Source Server and Version Found ---'
 
     def install_service(self, service_pkg, service_install_path, version=None, id=None, timeout=5):
-        print '--- Update Service <{}> to Version <{}> ---'.format(service_pkg, version if version else 'latest')
+        print '--- nstall Service <{}> toＩ Version <{}> ---'.format(service_pkg, version if version else 'latest')
         fid_version = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
         if fid_version:
             print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
