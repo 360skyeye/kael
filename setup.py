@@ -30,6 +30,7 @@ setup(
         'pika>=0.10.0',
         'PyYAML>=3.12',
         'termcolor>=1.1.0',
+        'beautifultable',
         'click>=4.0'
     ],
     extras_require={},
