@@ -77,11 +77,11 @@ class WORK_FRAME(micro_server):
         }
         """
         self.loaded_crontab = get_service_group(self.service_group_conf)['crontab_pkg']
-        all_servers_crontab_status = self.get_servers_crontab_status()
+        all_servers_crontab_status = self.get_all_crontab_status()
         for crontab_pkg, value in self.loaded_crontab.iteritems():
             need_cron_start = True
-            for server in all_servers_crontab_status[crontab_pkg].keys():
-                if server.get(crontab_pkg, {})['status'] == 'working':
+            for server, cron_dicts in all_servers_crontab_status.iteritems():
+                if cron_dicts.get(crontab_pkg, {})['status'] == 'working':
                     need_cron_start = False
                     break
             # 所有服务器上没有已启动的<crontab_pkg>
@@ -186,9 +186,10 @@ class WORK_FRAME(micro_server):
                     last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
         return last_dict
 
-    def get_servers_crontab_status(self, crontab=None, timeout=5):
-        # todo
-        pass
+    def get_all_crontab_status(self, crontab=None, timeout=5):
+        r = self.command('get_crontab_status', crontab)
+        data = self.get_response(r, timeout=timeout)
+        return data
 
     @Command
     def system(self, cmd):
@@ -221,11 +222,13 @@ class WORK_FRAME(micro_server):
         return rdata
 
     @Command
-    def get_crontab_version(self, crontab=None):
-        # todo
-        if not crontab:
-            for k, v in self.loaded_crontab.iteritems():
-                pass
+    def get_crontab_status(self, crontab=None):
+        if crontab:
+            content = self.loaded_crontab.get(crontab)
+            if content:
+                return {crontab: content}
+            return {}
+        return self.loaded_crontab
 
     @Command
     def zip_pkg(self, service_pkg):
