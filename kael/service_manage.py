@@ -138,7 +138,7 @@ def get_service_group(conf=None):
                 cron_for_work_frame = []
                 for i in crontab_items:
                     time_str = i[0]
-                    command = 'kael-crontab -c {} -d {}'.format(i[1], pkg_path)
+                    command = 'kael-crontab run -c {} -d {}'.format(i[1], pkg_path)
                     cron_for_work_frame.append({'time_str': time_str, 'command': command})
 
                 current_pkg_crontab = {
