@@ -14,7 +14,6 @@ import time
 from functools import wraps
 from multiprocessing import Process
 from uuid import uuid4
-# from crontab import CronTab
 
 import fcntl
 import gevent.monkey
@@ -23,6 +22,7 @@ from gevent.pool import Pool
 from termcolor import colored
 
 from kael import MQ
+from kael.cron import Cron
 
 gevent.monkey.patch_all()
 
@@ -34,7 +34,8 @@ class micro_server(MQ):
         self.app = app
         self.lock = lock
         self.services = {}
-        self.crontabs = {}  # {'<cron_name>': [{'schedule': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
+        self.crontabs = {}  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
+        self.cron_manage = Cron()
         self.id = str(uuid4())
         self.pro = {}
         self.pid = None
@@ -56,19 +57,19 @@ class micro_server(MQ):
     def start(self, n=1, daemon=True):
         """1启动服务 2启动定时任务"""
         print 'MICRO START', '\n', 30 * '-'
+        
+        # 设置定时任务
+        self.active_crontabs()
+        
+        # 启动服务
         # 防止子进程terminate后变为僵尸进程
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
-        # 启动服务
         self.register_all_service_queues()
         for i in range(n):
             pro = Process(target=self.proc)
             pro.daemon = daemon
             pro.start()
             self.pro.setdefault(pro.pid, pro)
-
-        # 设置定时任务
-        for cron_name, crons in self.crontabs.iteritems():
-            self.active_crontab(cron_name, crons)
 
     def stop(self):
         # 停止所有子进程
@@ -86,24 +87,40 @@ class micro_server(MQ):
 
         self.start(n, daemon)
 
-    def active_crontab(self, cron_name, crons):
+    def add_crontab(self, cron_name, command, time_str):
         """
-        添加cron_name组的所有定时任务，添加用户为执行的用户
-        :param cron_name:
-        :param crons: list [{}]
-        :return:
-        每个cron格式为字典  {'schedule': '1 * * * *', 'command': '/bin/bash /etc/xx/xx.sh >> /data/xx.log'}
+        添加单条crontab，与active_crontabs联合，供手动单独添加使用。
+        :param cron_name:   定时任务名
+        :param command:     定时任务命令
+        :param time_str:    定时任务时间
         """
-        # for cron in crons:
-        #     my_user_cron = CronTab(user=True)
-        #     # 创建任务
-        #     job = my_user_cron.new(command=cron.get('command'))
-        #     job.set_comment(cron_name)
-        #     job.setall(cron.get('schedule'))
-        #     job.enable()
-        #     my_user_cron.write()
-        pass
-
+        c_t = dict(command=command, time_str=time_str)
+        self.crontabs.setdefault(cron_name, []).append(c_t)
+        
+    def del_crontabs(self, cron_name=None):
+        """
+        删除定时任务
+        :param cron_name: 未指定则删除用户全部定时任务
+        :return: bool
+        """
+        if cron_name:
+            self.crontabs.pop(cron_name, None)
+        else:
+            self.crontabs.clear()
+        
+    def set_crontabs(self, cron_name, jobs):
+        """
+        供批量添加修改使用。替换已有，增加未有。
+        :param cron_name:   定时任务名
+        :param jobs:        定时任务列表 [{'command':'', 'time_str':'' }]
+        """
+        self.crontabs[cron_name] = jobs
+    
+    def active_crontabs(self):
+        """将预添加的定时任务写入系统"""
+        for cron_name, jobs in self.crontabs.iteritems():
+            self.cron_manage.micro_service_add_modify_job(job_name=cron_name, jobs=jobs)
+        
     def proc(self):
         if self.lock:
             self.single_instance()
