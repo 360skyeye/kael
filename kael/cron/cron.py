@@ -53,12 +53,15 @@ class Cron(object):
         self.to_add_jobs.clear()
         return True
     
-    def del_job(self, job_name):
+    def del_job(self, job_name=None):
         try:
-            if not job_name.startswith(self.commet_pre_str):
-                job_name = self.commet_pre_str + job_name
-            
-            objs = self.cron.find_comment(job_name)
+            if job_name:
+                if not job_name.startswith(self.commet_pre_str):
+                    job_name = self.commet_pre_str + job_name
+                objs = self.cron.find_comment(job_name)
+            else:
+                objs = self.cron
+                
             for obj in objs:
                 self.cron.remove(obj)
             self.cron.write(user=True)
@@ -121,6 +124,7 @@ def test():
     print
     # === del
     print t.del_job("test")
+    # print t.del_job()
     
     # === micro_service_add_modify_job
     job_name = 'test-micro_service'
@@ -137,7 +141,6 @@ def test():
     print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs2)
     
     print t.cron_jobs()
-
 
 if __name__ == "__main__":
     test()
