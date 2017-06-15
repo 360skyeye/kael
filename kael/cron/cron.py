@@ -55,8 +55,6 @@ class Cron(object):
     
     def del_job(self, job_name):
         try:
-            if not job_name:
-                return False
             if not job_name.startswith(self.commet_pre_str):
                 job_name = self.commet_pre_str + job_name
             
@@ -71,11 +69,18 @@ class Cron(object):
         return False
     
     def cron_jobs(self, job_name=None):
-        # todo
+        """列出执行用户的定时任务"""
         res = {}
-        for i, tmpjob in enumerate(self.cron):
-            logging.warn("-------cron job{0}: {1}".format(i, tmpjob))
-            res[tmpjob.comment] = tmpjob
+        if job_name:
+            if not job_name.startswith(self.commet_pre_str):
+                job_name = self.commet_pre_str + job_name
+            jobs = self.cron.find_comment(job_name)
+        else:
+            jobs = self.cron
+        for i, tmpjob in enumerate(jobs):
+            # logging.warn("-------cron job{0}: {1}".format(i, tmpjob))
+            time_str = ' '.join(map(str, tmpjob.slices))
+            res.setdefault(tmpjob.comment, []).append(dict(command=tmpjob.command, time_str=time_str))
         return res
     
     def micro_service_add_modify_job(self, job_name=None, jobs=None):
@@ -125,12 +130,13 @@ def test():
              ]
     print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs1)
     
-    jobs2 = [{'command': 'echo 11', 'time_str': '* * * * *'},
-             {'command': 'echo 21', 'time_str': '* * * * *'},
+    jobs2 = [{'command': 'echo 11', 'time_str': '*/15 * * * *'},
+             {'command': 'echo 21', 'time_str': '2 * * * *'},
              {'command': 'echo 31', 'time_str': '* * * * *'}
              ]
     print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs2)
-
+    
+    print t.cron_jobs()
 
 if __name__ == "__main__":
     test()
