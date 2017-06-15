@@ -6,13 +6,13 @@
 @time: 2017/5/25 16:07
 """
 
+import random
+
 
 def sql():
     """do someting"""
-    _sql = '123'
-    print _sql
-    result = 'res'
-    return result
+    with open('cron_write.log', 'a') as f:
+        f.writelines(str(random.choice(range(10))))
 
 
 if __name__ == '__main__':
