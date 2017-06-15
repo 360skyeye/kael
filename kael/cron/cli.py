@@ -26,19 +26,16 @@ def _check_task_is_py(command):
 @cli.command('run', short_help='Run task of cron with env.')
 @click.option('-c', help='Command string')
 @click.option('-d', help='Absolute directory of task')
-@click.option('-p', help='Python interpreter location')
-def run(c, d, p):
+def run(c, d):
     """Run task of cron with env."""
     if not d:
-        raise Exception('No absolute directory of task, use -d')
+        raise click.BadParameter('No absolute directory of task, use -d')
     os.chdir(d)
     
-    python_env = p if p else 'python'
-    
     if not c:
-        raise Exception('No command string')
+        raise click.BadParameter('No command string, use -c')
     if _check_task_is_py(c):
-        os.system('{} {}'.format(python_env, c))
+        os.system('python {}'.format(c))
     else:
         os.system(c)
 
