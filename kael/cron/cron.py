@@ -20,7 +20,7 @@ class Cron(object):
     to_add_jobs = {}
     
     def __init__(self, prefix=COMMON_PREFIX):
-        # this must use this load current user crontab, otherwise will empty other cron jobs
+        # this must use this load current user cron, otherwise will empty other cron jobs
         self.commet_pre_str = prefix
         self.cron = CronTab(user=True)
     
@@ -74,7 +74,7 @@ class Cron(object):
         # todo
         res = {}
         for i, tmpjob in enumerate(self.cron):
-            logging.warn("-------crontab job{0}: {1}".format(i, tmpjob))
+            logging.warn("-------cron job{0}: {1}".format(i, tmpjob))
             res[tmpjob.comment] = tmpjob
         return res
     
