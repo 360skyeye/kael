@@ -30,7 +30,8 @@ setup(
         'pika>=0.10.0',
         'PyYAML>=3.12',
         'termcolor>=1.1.0',
-        'click>=4.0'
+        'click>=4.0',
+        'python-crontab>=2.2.2'
     ],
     extras_require={},
     classifiers=[
