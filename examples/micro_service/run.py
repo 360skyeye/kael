@@ -108,5 +108,18 @@ def install():
     pprint(server.install_service(service, './caccu'))
 
 
+# crontab
+@cli.command()
+def scron():
+    """micro server crontab"""
+    server = micro_server("test", auri=AMQ_URI)
+    server.add_crontab(cron_name='haha', command='echo 1', time_str='* * * * *')
+    server.start(3, daemon=False)
+    print '-' * 10
+    print server.crontabs
+    print server.cron_manage.cron_jobs()
+    print '-' * 10
+
+
 if __name__ == "__main__":
     cli()
