@@ -121,5 +121,12 @@ def scron():
     print '-' * 10
 
 
+@cli.command()
+def wfcron():
+    """work frame crontab"""
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    pprint(server.get_all_crontab_status())
+
+
 if __name__ == "__main__":
     cli()
