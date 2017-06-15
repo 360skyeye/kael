@@ -28,6 +28,7 @@ def _check_task_is_py(command):
 @click.option('-d', help='Absolute directory of task')
 @click.option('-p', help='Python interpreter location')
 def run(c, d, p):
+    """Run task of cron with env."""
     if not d:
         raise Exception('No absolute directory of task, use -d')
     os.chdir(d)
