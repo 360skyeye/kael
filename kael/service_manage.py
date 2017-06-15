@@ -134,14 +134,18 @@ def get_service_group(conf=None):
 
             elif s.get('type') == 'crontab':
                 crontab_items = s['publish'] or []
-                # todo 做一些拼接处理
-                # crontab_items = function(crontab_items)
+                
+                cron_for_work_frame = []
+                for i in crontab_items:
+                    time_str = i[0]
+                    command = 'kael-crontab -c {} -d {}'.format(i[1], pkg_path)
+                    cron_for_work_frame.append({'time_str': time_str, 'command': command})
 
                 current_pkg_crontab = {
                     s['crontab_name']: {
                         'version': s['version'],
                         'path': pkg_path,
-                        'crontabs': crontab_items
+                        'crontabs': cron_for_work_frame
                     }
                 }
                 Services['crontab_pkg'].update(current_pkg_crontab)
