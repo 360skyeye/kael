@@ -29,9 +29,13 @@ def _check_task_is_py(command):
 @click.option('-p', help='Python interpreter location')
 def run(c, d, p):
     if not d:
-        raise
+        raise Exception('No absolute directory of task, use -d')
     os.chdir(d)
+    
     python_env = p if p else 'python'
+    
+    if not c:
+        raise Exception('No command string')
     if _check_task_is_py(c):
         os.system('{} {}'.format(python_env, c))
     else:
