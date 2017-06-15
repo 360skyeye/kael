@@ -11,6 +11,8 @@ from crontab import CronTab
 
 COMMON_PREFIX = 'KaelCron_'
 
+__all__ = ['Cron']
+
 
 class Cron(object):
     cron = None
@@ -75,6 +77,33 @@ class Cron(object):
             logging.warn("-------crontab job{0}: {1}".format(i, tmpjob))
             res[tmpjob.comment] = tmpjob
         return res
+    
+    def micro_service_add_modify_job(self, job_name=None, jobs=None):
+        """
+        微服务使用，没有job_name则新增，有job_name则删除旧job
+        :param job_name: 名称
+        :param jobs: 名称下的所有定时任务 [{'command':'', 'time_str':'' }]
+        :return:
+        """
+        
+        try:
+            # logging.warn("Info: update_crontab.add_modify:%s,%s,%s"%(command, time_str, job_name))
+            if not job_name:
+                return False
+            if not job_name.startswith(self.commet_pre_str):
+                job_name = self.commet_pre_str + job_name
+            jobs = jobs or {}
+            
+            # 删除已有
+            self.del_job(job_name=job_name)
+            
+            # 添加新的
+            for job in jobs:
+                self.add(command=job['command'], time_str=job['time_str'], job_name=job_name)
+            return self.active_add_jobs()
+        except Exception as e:
+            logging.warn("Error in update_crontab.add_modify:%s" % e)
+        return False
 
 
 def test():
@@ -87,8 +116,21 @@ def test():
     print
     # === del
     print t.del_job("test")
+    
+    # === micro_service_add_modify_job
+    job_name = 'test-micro_service'
+    jobs1 = [{'command': 'echo 1', 'time_str': '* * * * *'},
+             {'command': 'echo 2', 'time_str': '* * * * *'},
+             {'command': 'echo 3', 'time_str': '* * * * *'}
+             ]
+    print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs1)
+    
+    jobs2 = [{'command': 'echo 11', 'time_str': '* * * * *'},
+             {'command': 'echo 21', 'time_str': '* * * * *'},
+             {'command': 'echo 31', 'time_str': '* * * * *'}
+             ]
+    print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs2)
 
 
 if __name__ == "__main__":
     test()
-    pass
