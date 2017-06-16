@@ -114,8 +114,7 @@ def scron():
     server.add_crontab(cron_name='haha', command='echo 1', time_str='* * * * *')
     server.start(3, daemon=False)
     print '-' * 10
-    print server.crontabs
-    print server.cron_manage.cron_jobs()
+    print server.cron_manage.user_cron_jobs()
     print '-' * 10
 
 
