@@ -31,7 +31,8 @@ setup(
         'PyYAML>=3.12',
         'termcolor>=1.1.0',
         'beautifultable',
-        'click>=4.0'
+        'click>=4.0',
+        'python-crontab>=2.2.2'
     ],
     extras_require={},
     classifiers=[
@@ -45,8 +46,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    entry_points='''
-        [console_scripts]
-        kael=kael.cli:main
-    '''
+    entry_points={
+        'console_scripts': [
+            'kael=kael.cli:main',
+            'kael-crontab=kael.cron:kael_crontab',
+        ]
+        
+    }
 )

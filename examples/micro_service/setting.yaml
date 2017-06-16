@@ -2,3 +2,4 @@ service_group: services_default
 path:
   - ./caculate_service
   - ./time_service
+  - ./task1_crontab
