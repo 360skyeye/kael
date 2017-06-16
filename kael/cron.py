@@ -180,6 +180,9 @@ def run(c, d):
     """Run task of cron with env."""
     if not d:
         raise click.BadParameter('No absolute directory of task, use -d')
+    if not os.path.exists(d):
+        raise click.BadParameter('Parameter d directory not exist: {}'.format(d))
+    
     os.chdir(d)
     
     if not c:
