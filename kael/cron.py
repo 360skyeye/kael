@@ -73,7 +73,8 @@ class Cron(object):
             for c_t in jobs:
                 job = self.cron.new(command=c_t['command'], comment=job_name)
                 job.setall(c_t['time_str'])
-        self.cron.write_to_user(user=True)
+        if self.to_add_jobs:
+            self.cron.write_to_user(user=True)
         self.to_add_jobs.clear()
         return True
     
