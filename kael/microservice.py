@@ -107,9 +107,11 @@ class micro_server(MQ):
         
     def set_crontabs(self, cron_name, jobs):
         """
-        供批量添加修改使用。替换已有，增加未有。
+        供批量添加修改使用。替换已有，增加未有。(可供work frame调用)
         :param cron_name:   定时任务名
         :param jobs:        定时任务列表 [{'command':'', 'time_str':'' }]
+        :return bool
+        cron_name下的任务，只要有写错的(time_str)，则cron整体都不能添加，返回False，应修改至全部正确
         """
         return self.cron_manage.set_to_add_jobs(job_name=cron_name, jobs=jobs)
     
