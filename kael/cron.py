@@ -17,7 +17,7 @@ COMMON_PREFIX = 'KaelCron_'
 class Cron(object):
     cron = None
     jobs = {}  # keys are jobs name_id, used as comment in contab
-    to_add_jobs = {}
+    to_add_jobs = {}  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
     
     def __init__(self, prefix=COMMON_PREFIX):
         # this must use this load current user cron, otherwise will empty other cron jobs
@@ -26,6 +26,7 @@ class Cron(object):
     
     def add(self, command='', time_str='', job_name=''):
         """添加任务至待保存区，没有真正添加"""
+        origin_job_name = job_name
         if not job_name:
             return False
         if not job_name.startswith(self.commet_pre_str):
@@ -38,12 +39,35 @@ class Cron(object):
             if job.setall(time_str):
                 self.to_add_jobs.setdefault(job_name, []).append(dict(command=command, time_str=time_str))
                 return True
+            logging.warn("Error in add job:%s, please check setting" % origin_job_name)
             return False
         except Exception as e:
             logging.warn("Error in add job:%s" % e)
             return False
     
-    def active_add_jobs(self):
+    def set_to_add_jobs(self, job_name, jobs):
+        """微服务的格式，添加多个，已有的要删除"""
+        self.del_to_add_job(job_name)
+        success = True
+        for j in jobs:
+            success = success and self.add(job_name=job_name, command=j['command'], time_str=j['time_str'])
+        if not success:
+            self.del_to_add_job(job_name)
+            return False
+        return True
+    
+    def del_to_add_job(self, job_name):
+        """删除待保存区中的任务"""
+        self.to_add_jobs.pop(job_name, None)
+        return True
+    
+    def show_to_add_jobs(self):
+        """列出所有待添加的定时任务"""
+        return self.to_add_jobs
+    
+    # ************ 以下为实际写入用户crontab的操作***********************
+    
+    def active_to_add_jobs(self):
         """激活所有添加的job，单纯的添加所有待添加job。不检查是否已存在job_name"""
         for job_name, jobs in self.to_add_jobs.iteritems():
             for c_t in jobs:
@@ -54,6 +78,7 @@ class Cron(object):
         return True
     
     def del_job(self, job_name=None):
+        """删除用户的定时任务"""
         try:
             if job_name:
                 if not job_name.startswith(self.commet_pre_str):
@@ -71,7 +96,7 @@ class Cron(object):
             logging.warn("[{0} {1}] {2}".format(" Cron_Update", "del_job", e))
         return False
     
-    def cron_jobs(self, job_name=None):
+    def user_cron_jobs(self, job_name=None):
         """列出执行用户的定时任务"""
         res = {}
         if job_name:
@@ -86,29 +111,18 @@ class Cron(object):
             res.setdefault(tmpjob.comment, []).append(dict(command=tmpjob.command, time_str=time_str))
         return res
     
-    def micro_service_add_modify_job(self, job_name=None, jobs=None):
+    def micro_service_active_jobs(self):
         """
         微服务使用，没有job_name则新增，有job_name则删除旧job
-        :param job_name: 名称
-        :param jobs: 名称下的所有定时任务 [{'command':'', 'time_str':'' }]
-        :return:
+        :return: bool
         """
-        
         try:
-            # logging.warn("Info: update_crontab.add_modify:%s,%s,%s"%(command, time_str, job_name))
-            if not job_name:
-                return False
-            if not job_name.startswith(self.commet_pre_str):
-                job_name = self.commet_pre_str + job_name
-            jobs = jobs or {}
-            
             # 删除已有
-            self.del_job(job_name=job_name)
+            for job_name, jobs in self.to_add_jobs.iteritems():
+                self.del_job(job_name=job_name)
             
             # 添加新的
-            for job in jobs:
-                self.add(command=job['command'], time_str=job['time_str'], job_name=job_name)
-            return self.active_add_jobs()
+            return self.active_to_add_jobs()
         except Exception as e:
             logging.warn("Error in update_crontab.add_modify:%s" % e)
         return False
@@ -120,7 +134,7 @@ def test():
     print t.add(command='echo 1', time_str='* * * * *', job_name='test')
     print t.add(command='echo 2', time_str='* * * * *', job_name='test')
     print t.add(command='echo 3', time_str='* * * * *', job_name='test')
-    print t.active_add_jobs()
+    print t.active_to_add_jobs()
     print
     # === del
     print t.del_job("test")
@@ -132,15 +146,17 @@ def test():
              {'command': 'echo 2', 'time_str': '* * * * *'},
              {'command': 'echo 3', 'time_str': '* * * * *'}
              ]
-    print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs1)
+    t.set_to_add_jobs(job_name, jobs1)
+    print t.micro_service_active_jobs()
     
     jobs2 = [{'command': 'echo 11', 'time_str': '*/15 * * * *'},
              {'command': 'echo 21', 'time_str': '2 * * * *'},
              {'command': 'echo 31', 'time_str': '* * * * *'}
              ]
-    print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs2)
+    t.set_to_add_jobs(job_name, jobs2)
+    print t.micro_service_active_jobs()
     
-    print t.cron_jobs()
+    print t.user_cron_jobs()
 
 
 # region
@@ -176,6 +192,8 @@ def run(c, d):
 
 def kael_crontab():
     cli()
+
+
 # end region
 
 
