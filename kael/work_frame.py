@@ -87,8 +87,11 @@ class WORK_FRAME(micro_server):
                     
             # 所有服务器上没有已启动的<crontab_pkg>
             if need_cron_start:
-                value['status'] = True
-                self.set_crontabs(cron_name=crontab_pkg, jobs=value['crontabs'])
+                # 设置定时任务，定时任务可能设置不成功，此时也应该置为False
+                if self.set_crontabs(cron_name=crontab_pkg, jobs=value['crontabs']):
+                    value['status'] = True
+                else:
+                    value['status'] = False
             else:
                 value['status'] = False
     
@@ -384,9 +387,9 @@ class WORK_FRAME(micro_server):
             data.update(self.get_response(r, timeout=timeout))
             return data
         print '--- No Source Server and Version Found ---'
-    
+
     def install_service(self, service_pkg, service_install_path, version=None, id=None, timeout=5):
-        print '--- Install Service <{}> toＩ Version <{}> ---'.format(service_pkg, version if version else 'latest')
+        print '--- Update Service <{}> to Version <{}> ---'.format(service_pkg, version if version else 'latest')
         fid_version = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
         if fid_version:
             print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
