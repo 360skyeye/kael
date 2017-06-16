@@ -8,10 +8,10 @@
 
 import logging
 from crontab import CronTab
+import os
+import click
 
 COMMON_PREFIX = 'KaelCron_'
-
-__all__ = ['Cron']
 
 
 class Cron(object):
@@ -61,7 +61,7 @@ class Cron(object):
                 objs = self.cron.find_comment(job_name)
             else:
                 objs = self.cron
-                
+            
             for obj in objs:
                 self.cron.remove(obj)
             self.cron.write(user=True)
@@ -141,6 +141,42 @@ def test():
     print t.micro_service_add_modify_job(job_name=job_name, jobs=jobs2)
     
     print t.cron_jobs()
+
+
+# region
+@click.group()
+def cli():
+    pass
+
+
+def _check_task_is_py(command):
+    command = command.strip()
+    head = command.split(' ')[0]
+    if 'py' == head.split('.')[-1]:
+        return True
+    return False
+
+
+@cli.command('run', short_help='Run task of cron with env.')
+@click.option('-c', help='Command string')
+@click.option('-d', help='Absolute directory of task')
+def run(c, d):
+    """Run task of cron with env."""
+    if not d:
+        raise click.BadParameter('No absolute directory of task, use -d')
+    os.chdir(d)
+    
+    if not c:
+        raise click.BadParameter('No command string, use -c')
+    if _check_task_is_py(c):
+        os.system('python {}'.format(c))
+    else:
+        os.system(c)
+
+
+def kael_crontab():
+    cli()
+# end region
 
 
 if __name__ == "__main__":
