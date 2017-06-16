@@ -45,8 +45,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    entry_points='''
-        [console_scripts]
-        kael=kael.cli:main
-    '''
+    entry_points={
+        'console_scripts': [
+            'kael=kael.cli:main',
+            'kael-crontab=kael.cron:kael_crontab',
+        ]
+        
+    }
 )
