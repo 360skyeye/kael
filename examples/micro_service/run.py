@@ -119,7 +119,6 @@ def scron():
     print '-' * 100
 
 
-
 @cli.command()
 def wfcron():
     """work frame crontab"""
