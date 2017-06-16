@@ -34,8 +34,7 @@ class micro_server(MQ):
         self.app = app
         self.lock = lock
         self.services = {}
-        self.crontabs = {}  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
-        self.cron_manage = Cron()
+        self.cron_manage = Cron()  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
         self.id = str(uuid4())
         self.pro = {}
         self.pid = None
@@ -55,7 +54,7 @@ class micro_server(MQ):
                 raise
 
     def start(self, n=1, daemon=True):
-        """1启动服务 2启动定时任务"""
+        """1 启动定时任务 2 启动服务"""
         print 'MICRO START', '\n', 80 * '-'
         
         # 设置定时任务
@@ -86,27 +85,25 @@ class micro_server(MQ):
         time.sleep(2)
 
         self.start(n, daemon)
-
+    
+    # region crontab
     def add_crontab(self, cron_name, command, time_str):
         """
-        添加单条crontab，与active_crontabs联合，供手动单独添加使用。
+        添加单条crontab，供手动单独添加使用。
         :param cron_name:   定时任务名
         :param command:     定时任务命令
         :param time_str:    定时任务时间
+        :return bool
         """
-        c_t = dict(command=command, time_str=time_str)
-        self.crontabs.setdefault(cron_name, []).append(c_t)
+        return self.cron_manage.add(command=command, time_str=time_str, job_name=cron_name)
         
-    def del_crontabs(self, cron_name=None):
+    def del_crontab(self, cron_name):
         """
-        删除定时任务
-        :param cron_name: 未指定则删除用户全部定时任务
+        删除待添加的定时任务，供手动单独删除使用。
+        :param cron_name: 删除待添加任务中的定时任务
         :return: bool
         """
-        if cron_name:
-            self.crontabs.pop(cron_name, None)
-        else:
-            self.crontabs.clear()
+        return self.cron_manage.del_to_add_job(cron_name)
         
     def set_crontabs(self, cron_name, jobs):
         """
@@ -114,12 +111,12 @@ class micro_server(MQ):
         :param cron_name:   定时任务名
         :param jobs:        定时任务列表 [{'command':'', 'time_str':'' }]
         """
-        self.crontabs[cron_name] = jobs
+        return self.cron_manage.set_to_add_jobs(job_name=cron_name, jobs=jobs)
     
     def active_crontabs(self):
-        """将预添加的定时任务写入系统"""
-        for cron_name, jobs in self.crontabs.iteritems():
-            self.cron_manage.micro_service_add_modify_job(job_name=cron_name, jobs=jobs)
+        """将预添加的定时任务写入系统，没有则新增，有则删除旧再新增"""
+        self.cron_manage.micro_service_active_jobs()
+    # endregion
         
     def proc(self):
         if self.lock:
