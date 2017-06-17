@@ -76,15 +76,16 @@ class WORK_FRAME(micro_server):
             }
         }
         """
-        self.loaded_crontab = get_service_group(self.service_group_conf)['crontab_pkg']
+        self.loaded_crontab = get_service_group(self.service_group_conf).get('crontab_pkg', {})
+        # 这里有RPC调用等待操作
         all_servers_crontab_status = self.get_all_crontab_status()
         for crontab_pkg, value in self.loaded_crontab.iteritems():
             need_cron_start = True
             for server, cron_dicts in all_servers_crontab_status.iteritems():
-                if cron_dicts.get(crontab_pkg, {})['status']:
+                if cron_dicts.get(crontab_pkg, {}).get('status'):
                     need_cron_start = False
                     break
-                    
+
             # 所有服务器上没有已启动的<crontab_pkg>
             if need_cron_start:
                 # 设置定时任务，定时任务可能设置不成功，此时也应该置为False
@@ -122,11 +123,11 @@ class WORK_FRAME(micro_server):
         print 80 * '-'
         print 'WORK FRAME START'
         print self.command_q, '\n', 80 * '-'
-        
-        self.init_service()
+
         self.init_crontabs()
-        
+        self.init_service()
         self.start(process_num, daemon=daemon)
+
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
                               queue=self.command_q, no_ack=False)
@@ -227,6 +228,7 @@ class WORK_FRAME(micro_server):
     
     @Command
     def restart_service(self, process_num=2, daemon=True):
+        # self.init_crontabs()
         self.init_service()
         self.restart(n=process_num, daemon=daemon)
         return 'restart ok'
