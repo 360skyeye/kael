@@ -38,6 +38,7 @@ class Cron(object):
             job = cron.new(command=command, comment=job_name)
             if job.setall(time_str):
                 self.to_add_jobs.setdefault(job_name, []).append(dict(command=command, time_str=time_str))
+                cron.remove(job)
                 return True
             logging.warn("Error in add job:%s, please check setting" % origin_job_name)
             return False
@@ -84,13 +85,11 @@ class Cron(object):
             if job_name:
                 if not job_name.startswith(self.commet_pre_str):
                     job_name = self.commet_pre_str + job_name
-                objs = self.cron.find_comment(job_name)
+                self.cron.remove_all(comment=job_name)
             else:
-                objs = self.cron
-            
-            for obj in objs:
-                self.cron.remove(obj)
-            self.cron.write(user=True)
+                self.cron.remove_all()
+
+            self.cron.write_to_user(user=True)
             logging.warn("[{0} {1}] succeed to remove job({2})".format(" Cron_Update", "del_job", job_name))
             return True
         except Exception as e:
@@ -121,7 +120,6 @@ class Cron(object):
             # 删除已有
             for job_name, jobs in self.to_add_jobs.iteritems():
                 self.del_job(job_name=job_name)
-            
             # 添加新的
             return self.active_to_add_jobs()
         except Exception as e:
