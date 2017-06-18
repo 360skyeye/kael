@@ -140,6 +140,12 @@ class WORK_FRAME(micro_server):
 
     def process_command(self, ch, method, props, body):
         """server中的命令执行函数"""
+        def run(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            rbody = result
+            self.push_msg(qid=self.command_q, topic="", msg=rbody, reply_id=props.correlation_id, session=ch,
+                          to=props.reply_to)
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
         body = self.decode_body(body)
         args, kwargs = body
@@ -160,10 +166,10 @@ class WORK_FRAME(micro_server):
 
         fn = self.command_fun.get(rtk)
         if fn:
-            result = fn(*args, **kwargs)
-            rbody = result
-            self.push_msg(qid=self.command_q, topic="", msg=rbody, reply_id=props.correlation_id, session=ch,
-                          to=props.reply_to)
+            if fn == self.restart_service:
+                run(*args, **kwargs)
+            else:
+                self.command_pool.spawn(run, *args, **kwargs)
 
     def command(self, name=None, *args, **kwargs):
         """work frame客户端命令调用函数"""
@@ -180,7 +186,6 @@ class WORK_FRAME(micro_server):
                     topic = "{0}{1}!@{2}".format(self.command_prefix, name, not_string)
                 else:
                     topic = "{0}{1}".format(self.command_prefix, name)
-            print topic
             qid = "command_{0}.{1}.{2}".format(self.command_q, name, uuid.uuid4())
             self.create_queue(qid, exclusive=True, auto_delete=True, )
             self.push_msg(qid, topic=topic, msg=(args, kwargs), ttl=15)
@@ -229,7 +234,7 @@ class WORK_FRAME(micro_server):
 
     def get_all_crontab_status(self, crontab=None, timeout=5):
         """获取所有crontab状态（如果服务端发送则去除自己）"""
-        r = self.command('get_crontab_status', crontab, not_id=self.command_q)
+        r = self.command('get_crontab_status', crontab)
         data = self.get_response(r, timeout=timeout)
         return data
 
