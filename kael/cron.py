@@ -17,7 +17,8 @@ COMMON_PREFIX = 'KaelCron_'
 class Cron(object):
     cron = None
     jobs = {}  # keys are jobs name_id, used as comment in contab
-    to_add_jobs = {}  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
+    to_add_jobs = {}  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]
+    added_jobs = {}
     
     def __init__(self, prefix=COMMON_PREFIX):
         # this must use this load current user cron, otherwise will empty other cron jobs
@@ -76,6 +77,7 @@ class Cron(object):
                 job.setall(c_t['time_str'])
         if self.to_add_jobs:
             self.cron.write_to_user(user=True)
+        self.added_jobs.update(self.to_add_jobs)
         self.to_add_jobs.clear()
         return True
     
@@ -110,7 +112,13 @@ class Cron(object):
             time_str = ' '.join(map(str, tmpjob.slices))
             res.setdefault(tmpjob.comment, []).append(dict(command=tmpjob.command, time_str=time_str))
         return res
-    
+
+    def clean_added_jobs(self):
+        for job_name, jobs in self.added_jobs.iteritems():
+            self.del_job(job_name=job_name)
+        self.added_jobs.clear()
+        return True
+
     def micro_service_active_jobs(self):
         """
         微服务使用，没有job_name则新增，有job_name则删除旧job
@@ -118,8 +126,7 @@ class Cron(object):
         """
         try:
             # 删除已有
-            for job_name, jobs in self.to_add_jobs.iteritems():
-                self.del_job(job_name=job_name)
+            self.clean_added_jobs()
             # 添加新的
             return self.active_to_add_jobs()
         except Exception as e:
