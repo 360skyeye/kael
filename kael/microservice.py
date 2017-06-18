@@ -61,8 +61,6 @@ class micro_server(MQ):
         self.active_crontabs()
         
         # 启动服务
-        # 防止子进程terminate后变为僵尸进程
-        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
         self.register_all_service_queues()
         for i in range(n):
             pro = Process(target=self.proc)
