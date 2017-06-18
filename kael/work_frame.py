@@ -159,11 +159,7 @@ class WORK_FRAME(micro_server):
     
     def command(self, name=None, *args, **kwargs):
         """work frame客户端命令调用函数"""
-        id = kwargs.get("id")
-        try:
-            kwargs.pop("id")
-        except:
-            pass
+        id = kwargs.pop("id", None)
         if name and name in self.command_fun:
             topic = "{0}{1}".format(self.command_prefix, name)
             if id:
