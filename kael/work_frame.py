@@ -233,7 +233,7 @@ class WORK_FRAME(micro_server):
         return last_dict
 
     def get_all_crontab_status(self, crontab=None, timeout=5):
-        """获取所有crontab状态（如果服务端发送则去除自己）"""
+        """获取所有crontab状态"""
         r = self.command('get_crontab_status', crontab)
         data = self.get_response(r, timeout=timeout)
         return data
@@ -247,7 +247,7 @@ class WORK_FRAME(micro_server):
 
     @Command
     def restart_service(self, process_num=2, daemon=True):
-        # self.init_crontabs()
+        self.init_crontabs()
         self.init_service()
         self.restart(n=process_num, daemon=daemon)
         return 'restart ok'
