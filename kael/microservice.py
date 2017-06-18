@@ -8,7 +8,7 @@
 import inspect
 import logging
 import os
-import signal
+# import signal
 import sys
 import time
 from functools import wraps
