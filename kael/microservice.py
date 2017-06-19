@@ -80,7 +80,6 @@ class micro_server(MQ):
  
     def stop_crontab(self):
         """删除定时任务"""
-        print self.cron_manage.added_jobs
         self.cron_manage.clean_added_jobs()
 
     # region crontab

@@ -275,6 +275,8 @@ class WORK_FRAME(micro_server):
     @Command
     def restart_service(self, process_num=2, daemon=True):
         self.stop_service()
+        # queue will auto delete, need recreate
+        time.sleep(1)
         self.init_service()
         self.start_service(n=process_num, daemon=daemon)
         return 'restart service ok'
