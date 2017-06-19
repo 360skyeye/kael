@@ -92,7 +92,7 @@ def pc():
 def z():
     server = WORK_FRAME("test", auri=AMQ_URI)
     service = 'calculate'
-    r = server.command("get_service_version", service)
+    r = server.command("get_pkg_version", service)
     pprint(server.get_response(r, timeout=5, ))
     # print server.get_last_version(service)
     pprint(server.update_service(service, version=1.8))

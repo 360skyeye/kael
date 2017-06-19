@@ -89,7 +89,7 @@ def status(n):
     if not n:
         raise click.BadParameter('namespace is wrong.')
     server = WORK_FRAME(n, auri=AMQ_URI)
-    r = server.command('get_service_version')
+    r = server.command('get_pkg_version')
     res = server.get_response(r)
     # print json.dumps(res, indent=2)
     for s_name in res:
