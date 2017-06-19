@@ -126,7 +126,8 @@ class Cron(object):
         """
         try:
             # 删除已有
-            self.clean_added_jobs()
+            for job_name, jobs in self.to_add_jobs.iteritems():
+                self.del_job(job_name=job_name)
             # 添加新的
             return self.active_to_add_jobs()
         except Exception as e:
