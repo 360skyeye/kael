@@ -34,25 +34,12 @@ def s():
         print "HHHHH", s, os.getpid()
         return {"b": s}
 
-    server.start(4, daemon=False)
+    server.start_service(4, daemon=False)
     r = server.hha(123123)
     print server.hha.src
     print "--------------", r
     print "done"
     print server.services
-
-    time.sleep(2)
-    # server.stop()
-    print 'stop & restart'
-    print '-' * 20
-
-    print server.services
-    # time.sleep(3)
-    server.restart(2, daemon=False)
-    r = server.hha(123)
-    print server.hha.src
-    print "--------------", r
-    print "done"
 
 
 @cli.command()
@@ -68,11 +55,6 @@ def p():
     conf_dir = os.path.join(file_path, 'setting.yaml')
     w = WORK_FRAME("test", auri=AMQ_URI, service_group_conf=conf_dir)
     w.frame_start()
-    # server = micro_server("serive_webservice", auri=AMQ_URI)
-    # print server.web_proxy.src
-    # while 1:
-    # server.push_msg(qid="hahah",topic="test",to="a")
-    # print server.pull_msg("a", limit=3)
 
 
 @cli.command()
@@ -104,26 +86,6 @@ def install():
     service = 'calculate'
     pprint(server.get_last_version(service))
     pprint(server.install_service(service, './caccu'))
-
-
-# cron tab
-@cli.command()
-def scron():
-    """micro server crontab"""
-    server = micro_server("test", auri=AMQ_URI)
-    server.add_crontab(cron_name='haha', command='echo 1', time_str='* * * * *')
-    server.start(3, daemon=False)
-    print '-' * 100
-    print 'USER ALL CRONTAB'
-    pprint(server.cron_manage.user_cron_jobs())
-    print '-' * 100
-
-
-@cli.command()
-def wfcron():
-    """work frame crontab"""
-    server = WORK_FRAME("test", auri=AMQ_URI)
-    pprint(server.get_all_crontab_status())
 
 
 if __name__ == "__main__":
