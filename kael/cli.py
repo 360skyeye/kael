@@ -38,7 +38,7 @@ def run(s, p):
             print a, os.getpid()
             return {"b": a}
 
-        server.start(2, daemon=False)
+        server.start_service(2, daemon=False)
     elif p:
         if not os.path.isfile(p) or os.path.splitext(p)[1] != '.yaml':
             raise click.BadParameter(

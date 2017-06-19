@@ -146,9 +146,11 @@ class WORK_FRAME(micro_server):
         print 'WORK FRAME START'
         print self.command_q, '\n', 80 * '-'
         
-        self.init_crontabs()
         self.init_service()
-        self.start(process_num, daemon=daemon)
+        self.start_service(process_num, daemon=daemon)
+        
+        self.init_crontabs()
+        self.start_crontab()
         
         channel = self.connection.channel()
         channel.basic_consume(self.process_command,
@@ -272,12 +274,18 @@ class WORK_FRAME(micro_server):
     
     @Command
     def restart_service(self, process_num=2, daemon=True):
-        self.stop()
+        self.stop_service()
         self.init_service()
+        self.start_service(n=process_num, daemon=daemon)
+        return 'restart service ok'
+    
+    @Command
+    def restart_crontab(self):
+        self.stop_crontab()
         time.sleep(random.choice(range(5)))
         self.init_crontabs()
-        self.start(n=process_num, daemon=daemon)
-        return 'restart ok'
+        self.start_crontab()
+        return 'restart crontab ok'
     
     @Command
     def get_pkg_version(self, pkg=None, pkg_type='service'):

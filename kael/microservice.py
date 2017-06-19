@@ -53,13 +53,9 @@ class micro_server(MQ):
             else:
                 raise
 
-    def start(self, n=1, daemon=True):
-        """1 启动定时任务 2 启动服务"""
-        print 'MICRO START', '\n', 80 * '-'
-        
-        # 设置定时任务
-        self.active_crontabs()
-        
+    def start_service(self, n=1, daemon=True):
+        """启动服务"""
+        print 'MICRO START SERVICE', '\n', 80 * '-'
         # 启动服务
         self.register_all_service_queues()
         for i in range(n):
@@ -68,24 +64,25 @@ class micro_server(MQ):
             pro.start()
             self.pro.setdefault(pro.pid, pro)
 
-    def stop(self):
-        """1 删除定时任务 2 停止服务"""
-        self.cron_manage.clean_added_jobs()
-
+    def stop_service(self):
+        """停止服务"""
         # 停止所有子进程
         for pid, pro in self.pro.iteritems():
             try:
                 pro.terminate()
             except Exception as e:
                 logging.exception(e)
-
-    def restart(self, n=1, daemon=True):
-        self.stop()
-        # * 需要保证queue一定存在，存在可能：重启之间的时间queue被删除了，那后面监听消费queue会报错
-        # 一种思路是等待一段时间，等queue自动全删完了，再重新建（依赖于auto_delete的响应时间）
-        time.sleep(1)
-        self.start(n, daemon)
     
+    def start_crontab(self):
+        """设置定时任务"""
+        print 'MICRO START CRONTAB', '\n', 80 * '-'
+        self.active_crontabs()
+ 
+    def stop_crontab(self):
+        """删除定时任务"""
+        print self.cron_manage.added_jobs
+        self.cron_manage.clean_added_jobs()
+
     # region crontab
     def add_crontab(self, cron_name, command, time_str):
         """
