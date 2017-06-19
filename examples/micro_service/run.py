@@ -71,13 +71,46 @@ def pc():
 
 
 @cli.command()
-def z():
+def status():
+    print '-' * 10, 'service', '-' * 10
     server = WORK_FRAME("test", auri=AMQ_URI)
-    service = 'calculate'
-    r = server.command("get_pkg_version", service)
+    r = server.command("get_pkg_version", pkg_type='service')
+    pprint(server.get_response(r))
+    print '\n\n', '-' * 10, 'crontab', '-' * 10
+    r = server.command("get_pkg_version", pkg_type='crontab')
+    pprint(server.get_response(r))
+  
+  
+@cli.command()
+def restart_service():
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    r = server.command("restart_service", not_id='test-8bee87c0-69de-45d8-919b-6a5014eb00b2')
+    print server.get_response(r, timeout=5)
+    
+    
+@cli.command()
+def restart_crontab():
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    r = server.command("restart_crontab")
+    print server.get_response(r, timeout=5)
+
+
+@cli.command()
+def update_s():
+    service = 'time'
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    r = server.command("get_pkg_version")
     pprint(server.get_response(r, timeout=5, ))
-    # print server.get_last_version(service)
-    pprint(server.update_service(service, version=1.8))
+    pprint(server.update_service(service))
+
+
+@cli.command()
+def update_c():
+    crontab = 'print'
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    r = server.command("get_pkg_version", pkg_type='crontab')
+    pprint(server.get_response(r, timeout=5, ))
+    pprint(server.update_crontab(crontab, version=1.0))
 
 
 @cli.command()
@@ -88,5 +121,25 @@ def install():
     pprint(server.install_service(service, './caccu'))
 
 
+# cron tab
+@cli.command()
+def scron():
+    """micro server crontab"""
+    server = micro_server("test", auri=AMQ_URI)
+    server.add_crontab(cron_name='haha', command='echo 2', time_str='* * * * *')
+    server.start_crontab()
+    print '-' * 100
+    print 'USER ALL CRONTAB'
+    pprint(server.cron_manage.user_cron_jobs())
+    print '-' * 100
+
+
+@cli.command()
+def wfcron():
+    """work frame crontab"""
+    server = WORK_FRAME("test", auri=AMQ_URI)
+    pprint(server.get_all_crontab_status())
+    
+    
 if __name__ == "__main__":
     cli()
