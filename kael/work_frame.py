@@ -46,10 +46,31 @@ class WORK_FRAME(micro_server):
         self.service_group_conf = service_group_conf
 
     def init_service(self):
+        """
+            frame_start时调用, 载入service包到self.loaded_services
+            最后self.loaded_services结构：
+            {
+                'calculate': {
+                    'path': '/data/project/mq-service/services_default/sleep_service',
+                    'version': 1.0,
+                    'services': {
+                        'calculate__add': <function add at 0x00000000029C7AC8>,
+                        'calculate__minus': <function minus at 0x00000000029C7B38>
+                    }
+                },
+                'time': {
+                    'path': '/data/project/mq-service/services_default/time_service',
+                    'version': 1.0,
+                    'services': {
+                        'time__transfer': <function transfer at 0x00000000029C7F28>
+                    }
+                }
+            }
+        """
         if not self.service_group_conf:
             raise ImportError('No Config of Service Group: service_group_conf')
-        self.loaded_services = get_service_group(self.service_group_conf)
-        for service_pkg, value in self.loaded_services['service_pkg'].iteritems():
+        self.loaded_services = get_service_group(self.service_group_conf).get('service_pkg', {})
+        for service_pkg, value in self.loaded_services.iteritems():
             for service_name, func in value['services'].iteritems():
                 self.services.update({service_name: func})
 
@@ -256,15 +277,15 @@ class WORK_FRAME(micro_server):
     def get_service_version(self, service=None):
         rdata = {}
         if not service:
-            for i in self.loaded_services['service_pkg']:
-                data = copy.deepcopy(self.loaded_services['service_pkg'][i])
+            for i in self.loaded_services:
+                data = copy.deepcopy(self.loaded_services[i])
                 data.pop("services")
                 rdata.setdefault(i, data)
         else:
-            if service not in self.loaded_services['service_pkg']:
+            if service not in self.loaded_services:
                 rdata = {}
             else:
-                data = copy.deepcopy(self.loaded_services['service_pkg'][service])
+                data = copy.deepcopy(self.loaded_services[service])
                 data.pop("services")
                 rdata = {service: data}
         return rdata
@@ -280,7 +301,7 @@ class WORK_FRAME(micro_server):
 
     @Command
     def zip_pkg(self, service_pkg):
-        pkg_path = self.loaded_services['service_pkg'][service_pkg]['path']
+        pkg_path = self.loaded_services[service_pkg]['path']
         tmp = BytesIO()
         cwd = os.getcwd()
         os.chdir(pkg_path)
@@ -308,7 +329,7 @@ class WORK_FRAME(micro_server):
         :return: execution message
         """
         from_server_id, from_server_version = fid_version['fid'], fid_version['version']
-        old_version = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('version')
+        old_version = self.loaded_services.get(service_pkg, {}).get('version')
         if from_server_id == self.command_q:
             return 'I am the source code'
 
@@ -326,7 +347,7 @@ class WORK_FRAME(micro_server):
 
         # update service -->  install_path=None, use existed path
         # install service --> install_path is not None, use install_path
-        self_server_path = self.loaded_services.get('service_pkg').get(service_pkg, {}).get('path')
+        self_server_path = self.loaded_services.get(service_pkg, {}).get('path')
         if not self_server_path and not install_path:
             return 'ERR: No Service AND No install_path. Cannot update or install on {}:'.format(self.command_q)
 
@@ -353,12 +374,12 @@ class WORK_FRAME(micro_server):
     @Command
     def install_pkg(self, fid_version, service_pkg, install_path, timeout=5):
         # check whether service is installed
-        if service_pkg in self.loaded_services.get('service_pkg', {}):
-            if fid_version['version'] == self.loaded_services.get('service_pkg').get(service_pkg, {}).get('version'):
+        if service_pkg in self.loaded_services:
+            if fid_version['version'] == self.loaded_services.get(service_pkg, {}).get('version'):
                 return 'Service <{}> Version <{}> Already on this server'.format(service_pkg, fid_version['version'])
             else:
                 return 'Service <{}> Version <{}> Already on this server. Please use update command to version <{}>'. \
-                    format(service_pkg, self.loaded_services.get('service_pkg').get(service_pkg, {}).get('version'),
+                    format(service_pkg, self.loaded_services.get(service_pkg, {}).get('version'),
                            fid_version['version'])
 
         # install_path为相对路径时，更改为绝对路径
