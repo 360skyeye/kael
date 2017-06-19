@@ -261,6 +261,7 @@ class WORK_FRAME(micro_server):
         data = self.get_response(r, timeout=timeout)
         return data
     
+    # region RPC COMMAND FUNCTION
     @Command
     def system(self, cmd):
         output = os.popen(cmd)
@@ -313,8 +314,13 @@ class WORK_FRAME(micro_server):
         return self.loaded_crontab
     
     @Command
-    def zip_pkg(self, service_pkg):
-        pkg_path = self.loaded_services[service_pkg]['path']
+    def zip_pkg(self, pkg, pkg_type):
+        if pkg_type == 'service':
+            pkg_path = self.loaded_services[pkg]['path']
+        elif pkg_type == 'crontab':
+            pkg_path = self.loaded_crontab[pkg]['path']
+        else:
+            return
         tmp = BytesIO()
         cwd = os.getcwd()
         os.chdir(pkg_path)
@@ -328,65 +334,6 @@ class WORK_FRAME(micro_server):
         tmp.close()
         os.chdir(cwd)
         return res
-    
-    def _update_and_install_pkg(self, fid_version, pkg, pkg_type, install_path=None, timeout=5):
-        """
-        被更新服务端发起, 更新服务不需要install_path， 安装服务需要install_path
-        update service -->  install_path=None, use existed path
-        install service --> install_path is not None, use install_path
-
-        :param fid_version: source code provider server id & code version
-        :param pkg: the service name which needed update or install
-        :param pkg_type: service or crontab
-        :param install_path: if service not exist in server, need install_path to deploy
-        :param timeout:
-        :return: execution message
-        """
-        if pkg_type == 'service':
-            loaded_pkg = self.loaded_services
-        elif pkg_type == 'crontab':
-            loaded_pkg = self.loaded_crontab
-        else:
-            return 'ERR: package must be service or crontab'
-        
-        from_server_id, from_server_version = fid_version['fid'], fid_version['version']
-        old_version = loaded_pkg.get(pkg, {}).get('version')
-        if from_server_id == self.command_q:
-            return 'I am the source code'
-        
-        if from_server_version == old_version:
-            return 'Package <{}> Version <{}> Already on the server'.format(pkg, from_server_version)
-        
-        r = self.command('zip_pkg', pkg, id=from_server_id)
-        data = self.get_response(r, timeout=timeout)
-        if not data:
-            return 'ERR: No Zip Content from get_response'
-        
-        content = data[from_server_id]
-        if not content:
-            return 'ERR: No Zip Content. From {}, To {}'.format(from_server_id, self.command_q)
-        
-        # update service -->  install_path=None, use existed path
-        # install service --> install_path is not None, use install_path
-        self_server_path = loaded_pkg.get(pkg, {}).get('path')
-        if not self_server_path and not install_path:
-            return 'ERR: No Package AND No install_path. Cannot update or install on {}:'.format(self.command_q)
-        
-        if install_path:
-            self_server_path = install_path
-        
-        cwd = os.getcwd()
-        os.chdir(self_server_path)
-        with BytesIO() as tmp:
-            tmp.write(content)
-            with zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED) as z:
-                try:
-                    z.extractall()
-                except Exception as e:
-                    logging.exception(e)
-                    return 'ERR: extract failed, {}'.format(e.message)
-        os.chdir(cwd)
-        return 'Update OK. Version from <{}> to <{}>'.format(old_version, from_server_version)
     
     @Command
     def update_pkg(self, fid_version, pkg, pkg_type, timeout=5):
@@ -431,12 +378,112 @@ class WORK_FRAME(micro_server):
         # install service: 需将service group载入的文件更新(只针对配置文件启动)
         update_service_group(self.service_group_conf, install_path)
         return "{}, {}".format(res, install_path)
+
+    def _update_and_install_pkg(self, fid_version, pkg, pkg_type, install_path=None, timeout=5):
+        """
+        被更新服务端发起, 更新服务不需要install_path， 安装服务需要install_path
+        update service -->  install_path=None, use existed path
+        install service --> install_path is not None, use install_path
+
+        :param fid_version: source code provider server id & code version
+        :param pkg: the service name which needed update or install
+        :param pkg_type: service or crontab
+        :param install_path: if service not exist in server, need install_path to deploy
+        :param timeout:
+        :return: execution message
+        """
+        if pkg_type == 'service':
+            loaded_pkg = self.loaded_services
+        elif pkg_type == 'crontab':
+            loaded_pkg = self.loaded_crontab
+        else:
+            return 'ERR: package must be service or crontab'
     
+        from_server_id, from_server_version = fid_version['fid'], fid_version['version']
+        old_version = loaded_pkg.get(pkg, {}).get('version')
+        if from_server_id == self.command_q:
+            return 'I am the source code'
+    
+        if from_server_version == old_version:
+            return 'Package <{}> Version <{}> Already on the server'.format(pkg, from_server_version)
+        
+        r = self.command('zip_pkg', pkg, pkg_type, id=from_server_id)
+        data = self.get_response(r, timeout=timeout)
+        if not data:
+            return 'ERR: No Zip Content from get_response'
+    
+        content = data[from_server_id]
+        if not content:
+            return 'ERR: No Zip Content. From {}, To {}'.format(from_server_id, self.command_q)
+    
+        # update service -->  install_path=None, use existed path
+        # install service --> install_path is not None, use install_path
+        self_server_path = loaded_pkg.get(pkg, {}).get('path')
+        if not self_server_path and not install_path:
+            return 'ERR: No Package AND No install_path. Cannot update or install on {}:'.format(self.command_q)
+    
+        if install_path:
+            self_server_path = install_path
+    
+        cwd = os.getcwd()
+        os.chdir(self_server_path)
+        with BytesIO() as tmp:
+            tmp.write(content)
+            with zipfile.ZipFile(tmp, 'r', zipfile.ZIP_DEFLATED) as z:
+                try:
+                    z.extractall()
+                except Exception as e:
+                    logging.exception(e)
+                    return 'ERR: extract failed, {}'.format(e.message)
+        os.chdir(cwd)
+        return 'Update OK. Version from <{}> to <{}>'.format(old_version, from_server_version)
+    # endregion
+    
+    # region client operation function
+    def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=5):
+        return self._update_pkg_client_helper(service_pkg, 'service', version, id, not_id, timeout)
+    
+    def update_crontab(self, crontab_pkg, version=None, id=None, not_id=None, timeout=5):
+        return self._update_pkg_client_helper(crontab_pkg, 'crontab', version, id, not_id, timeout)
+    
+    def install_service(self, service_pkg, service_install_path, version=None, id=None, not_id=None, timeout=5):
+        return self._install_pkg_client_helper(service_pkg, 'service', service_install_path,
+                                               version, id, not_id, timeout)
+    
+    def install_crontab(self, crontab_pkg, service_install_path, version=None, id=None, not_id=None, timeout=5):
+        return self._install_pkg_client_helper(crontab_pkg, 'crontab', service_install_path,
+                                               version, id, not_id, timeout)
+    
+    # endregion
+    def _update_pkg_client_helper(self, pkg, pkg_type, version=None, id=None, not_id=None, timeout=5):
+        print '--- Update {} <{}> to Version <{}> ---'.format(pkg_type, pkg, version if version else 'latest')
+        fid_version = self._get_source_service_server_id(pkg, pkg_type=pkg_type, version=version, timeout=timeout)
+        if fid_version:
+            print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
+            r = self.command("update_pkg", fid_version, pkg, pkg_type=pkg_type, id=id, not_id=not_id, timeout=timeout)
+            data = self.get_response(r, timeout=timeout)
+            data.update(self.get_response(r, timeout=timeout))
+            return data
+        print '--- No Source Server and Version Found ---'
+    
+    def _install_pkg_client_helper(self, pkg, pkg_type, service_install_path, version=None, id=None, not_id=None,
+                                   timeout=5):
+        print '--- Update {} <{}> to Version <{}> ---'.format(pkg_type, pkg, version if version else 'latest')
+        fid_version = self._get_source_service_server_id(pkg, pkg_type=pkg_type, version=version, timeout=timeout)
+        if fid_version:
+            print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
+            r = self.command("install_pkg", fid_version, pkg, pkg_type=pkg_type, install_path=service_install_path,
+                             id=id, not_id=not_id, timeout=timeout)
+            data = self.get_response(r, timeout=timeout)
+            data.update(self.get_response(r, timeout=timeout))
+            return data
+        print '--- No Source Server and Version Found ---'
+        
     # 上层控制函数
     def _get_source_service_server_id(self, service_pkg, pkg_type='service', version=None, timeout=5):
         fid_version = {}
         if not version:
-            v = self.get_last_version(service_pkg, ).get(service_pkg)
+            v = self.get_last_version(service_pkg, pkg_type=pkg_type).get(service_pkg)
             if v:
                 fid_version = {'version': v[0], 'fid': v[2]}
         else:
@@ -449,29 +496,6 @@ class WORK_FRAME(micro_server):
                     fid_version = {'version': version, 'fid': server_id}
                     break
         return fid_version
-    
-    def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=5):
-        print '--- Update Service <{}> to Version <{}> ---'.format(service_pkg, version if version else 'latest')
-        fid_version = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
-        if fid_version:
-            print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
-            r = self.command("update_pkg", fid_version, service_pkg, id=id, not_id=not_id, timeout=timeout)
-            data = self.get_response(r, timeout=timeout)
-            data.update(self.get_response(r, timeout=timeout))
-            return data
-        print '--- No Source Server and Version Found ---'
-    
-    def install_service(self, service_pkg, service_install_path, version=None, id=None, not_id=None, timeout=5):
-        print '--- Update Service <{}> to Version <{}> ---'.format(service_pkg, version if version else 'latest')
-        fid_version = self._get_source_service_server_id(service_pkg, version=version, timeout=timeout)
-        if fid_version:
-            print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
-            r = self.command("install_pkg", fid_version, service_pkg, install_path=service_install_path, id=id,
-                             not_id=not_id, timeout=timeout)
-            data = self.get_response(r, timeout=timeout)
-            data.update(self.get_response(r, timeout=timeout))
-            return data
-        print '--- No Source Server and Version Found ---'
 
 
 def main():
