@@ -4,6 +4,7 @@ import copy
 import inspect
 import logging
 import os
+import random
 import time
 import uuid
 import zipfile
@@ -255,10 +256,10 @@ class WORK_FRAME(micro_server):
                     last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
         return last_dict
     
-    def get_all_crontab_status(self, crontab=None, timeout=5):
+    def get_all_crontab_status(self, crontab=None):
         """获取所有crontab状态"""
         r = self.command('get_crontab_status', crontab)
-        data = self.get_response(r, timeout=timeout)
+        data = self.get_response(r)
         return data
     
     # region RPC COMMAND FUNCTION
@@ -271,9 +272,11 @@ class WORK_FRAME(micro_server):
     
     @Command
     def restart_service(self, process_num=2, daemon=True):
-        self.init_crontabs()
+        self.stop()
         self.init_service()
-        self.restart(n=process_num, daemon=daemon)
+        time.sleep(random.choice(range(5)))
+        self.init_crontabs()
+        self.start(n=process_num, daemon=daemon)
         return 'restart ok'
     
     @Command
