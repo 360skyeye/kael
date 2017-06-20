@@ -130,8 +130,9 @@ Example:
 
 直接调用微服务名称即可，如上面发布的微服务calculate__add.
 
-.. code-block::
-        result = client.calculate__add(1,2)
+.. code-block:: python
+
+    result = client.calculate__add(1,2)
 
 框架微服务操作
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -163,6 +164,7 @@ RPC COMMAND 命令
 更新、安装操作
 
 .. code-block::
+
         client.update_service(pkg_name, **kwargs)
         client.update_crontab(pkg_name, **kwargs)
         client.install_service(pkg_name, install_path, **kwargs)
@@ -176,5 +178,6 @@ not_id: list, 不执行的机器
 重启
 
 .. code-block::
+
         client.command("restart_service")
         client.command("restart_crontab")
