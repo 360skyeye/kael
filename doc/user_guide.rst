@@ -86,6 +86,7 @@ Example:
 
 2. 定时任务包
 
+    同一个定时任务部署在各台机器上，同时间只有一台机器激活定时任务，其他机器不执行定时任务。
     配置文件setting.yaml,包含四部分：类型、定时任务名、版本号和发布的定时任务。
 
     Example:
@@ -135,7 +136,31 @@ Example:
 框架微服务操作
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-框架内置了多种操作，实现查看、更改、重启服务等操作。
+RPC COMMAND 命令
+
+在客户端调用command函数，第一个参数为rpc执行的函数名,返回id。函数在服务端执行并返回结果
+
+.. code-block::
+
+        r = client.command(function, **kwargs) # 返回消息id
+        result = client.get_response(r, timeout=5) # 获取结果
+
+获取服务/定时任务版本 状态
+
+.. code-block::
+
+        # 获取最新版本
+        client.get_last_version(service='calculate', pkg_type='service')
+        client.get_last_version(pkg_type='crontab')
+
+        # 获取所有版本
+        client.command("get_pkg_version", pkg_type='service')
+        client.command("get_pkg_version", pkg_type='crontab')
+
+        # 获取定时任务状态
+        client.get_all_crontab_status(crontab=None)
+
+更新、安装操作
 
 .. code-block::
         client.update_service(pkg_name, **kwargs)
@@ -148,9 +173,8 @@ version：指定版本，默认为最高版本
 id: 指定机器执行
 not_id: list, 不执行的机器
 
-
-获取服务/定时任务版本
+重启
 
 .. code-block::
-        client.get_last_version(service='calculate', pkg_type='service')
-        client.get_last_version(pkg_type='crontab')
+        client.command("restart_service")
+        client.command("restart_crontab")
