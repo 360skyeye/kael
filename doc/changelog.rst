@@ -4,8 +4,9 @@ Changelog
 Version 0.0.4
 ---------------------
 
-＋增加doc文件夹
-＋增加changelog
++ 增加doc文件夹
++ 增加changelog
++ 增加定时任务类型
 
 Version 0.0.3
 ---------------------
