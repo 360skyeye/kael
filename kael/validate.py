@@ -6,7 +6,6 @@ import re
 from jsonschema.compat import str_types
 
 
-
 @_checks_drafts("timestamp", raises=ValueError)
 def timestamp(instance):
     if instance:
