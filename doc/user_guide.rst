@@ -171,9 +171,13 @@ RPC COMMAND 命令
         client.install_crontab(pkg_name, install_path, **kwargs)
 
 还有可选参数
+
 version：指定版本，默认为最高版本
+
 id: 指定机器执行
+
 not_id: list, 不执行的机器
+
 
 重启
 
