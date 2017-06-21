@@ -16,7 +16,7 @@ def hello():
 def subscribe():
     while True:
         result = time.time()
-        time.sleep(5)
+        time.sleep(2)
         yield result
 
 
