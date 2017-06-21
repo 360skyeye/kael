@@ -2,7 +2,7 @@
 # Created by zhangzhuo@360.cn on 17/6/20
 
 from flask_redis import FlaskRedis
-from kael import MQ
+from kael.work_frame import WORK_FRAME
 from common import get_reg_blueprint
 from monkey import patch_erro_handler
 from flask import Flask
@@ -11,7 +11,7 @@ APP_NAME = "web_admin"
 
 app = Flask(APP_NAME)
 app.config.from_object('settings')
-mq = MQ(app)
+WF = WORK_FRAME("test", app=app)
 redis = FlaskRedis(app)
 patch_erro_handler(app)
 

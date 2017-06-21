@@ -7,7 +7,7 @@ from jsonschema import validate
 from .exceptions import ArgumentError, BaseError, UnknownError
 from flask import request
 import simplejson as json
-from common import json_converter
+from common import json_converter, stream_gen
 
 
 def patch_flask_route(bl=None, json=False, api=False):
@@ -17,8 +17,12 @@ def patch_flask_route(bl=None, json=False, api=False):
             if not versions:
                 versions = [1]
             endpoint = options.pop("endpoint", f.__name__)
+            stream = options.pop('stream', None)
             if json:
-                f = json_converter(f)
+                if not stream:
+                    f = json_converter(f)
+            if stream:
+                f = stream_gen(f, json)
             if api:
                 for v in versions:
                     v_rule = '/v%d%s' % (v, rule)

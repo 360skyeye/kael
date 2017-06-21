@@ -2,13 +2,13 @@
 # Created by zhangzhuo@360.cn on 17/6/20
 from bson import ObjectId
 from datetime import datetime, date
-from flask import current_app, request, make_response
+from flask import current_app, request, make_response, Response
 import simplejson as json
 from web_admin import exceptions
-
 import web_admin
 import os
 import pkgutil
+import types
 
 
 def json_converter(f):
@@ -51,10 +51,12 @@ def to_json(content):
     """Converts content to json while respecting config options."""
     indent = None
     separators = (',', ':')
-
-    if current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and not request.is_xhr:
-        indent = 2
-        separators = (', ', ': ')
+    try:
+        if current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and not request.is_xhr:
+            indent = 2
+            separators = (', ', ': ')
+    except:
+        pass
     return json.dumps(content, indent=indent, separators=separators, cls=JsonEncoder)
 
 
@@ -73,3 +75,49 @@ def get_reg_blueprint(extlist=[]):
                 print "URL MAP ERROR: [%s]" % err
                 continue
     return bls
+
+
+class ServerSentEvent(object):
+    def __init__(self, data):
+        self.data = data
+        self.event = None
+        self.id = None
+        self.desc_map = {
+            self.data: "data",
+            self.event: "event",
+            self.id: "id"
+        }
+
+    def encode(self):
+        if not self.data:
+            return ""
+        lines = ["%s: %s" % (v, k)
+                 for k, v in self.desc_map.iteritems() if k]
+
+        return "%s\n\n" % "\n".join(lines)
+
+
+def stream_gen(f, flag=False):
+    def decorator(*args, **kwargs):
+        def SEE(ctx):
+            for i in ctx:
+                if flag:
+                    data = to_json(
+                        {
+                            'status': exceptions.OK,
+                            'msg': None,
+                            'data': i,
+                        }
+                    )
+                else:
+                    data = str(i)
+                ev = ServerSentEvent(data)
+                yield ev.encode()
+
+        rf = f(*args, **kwargs)
+        if isinstance(rf, types.GeneratorType):
+            return Response(SEE(rf), mimetype="text/event-stream")
+        else:
+            raise exceptions.InternalError
+
+    return decorator
