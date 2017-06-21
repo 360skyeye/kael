@@ -15,9 +15,7 @@ kael work frame是服务与代码管理框架，建立在micro_service层之上�
 :框架配置文件绝对路径: service_group_conf，框架通过此配置文件载入需要启动的微服务与定时任务。
 
 
-Example:
-
-.. code-block:: python
+Example::
 
     from kael.work_frame import WORK_FRAME
     AMQ_URI = 'amqp://user:****@127.0.0.1:5672/api' # rabbitmq 地址
@@ -26,16 +24,16 @@ Example:
     server = WORK_FRAME(name=namespace, auri=AMQ_URI, service_group_conf=conf_dir)
     server.frame_start()
 
+
 框架配置文件格式
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 配置文件为yaml格式，两部分构成：服务包空间名、服务包路径。
+
 :服务包空间名: service_group，框架初始化时若没有指定name，则取此值作为运行空间名。
 :服务包路径: path，列表，微服务包及定时任务包所在的路径。为绝对路径或相对路径（相对框架配置文件service_group_conf）
 
-Example:
-
-.. code-block::
+Example::
 
     service_group: services_default
     path:
@@ -45,14 +43,13 @@ Example:
 
 接下来进入最内层服务包与定时任务包文件夹中，一窥究竟
 
+
 服务包与定时任务包
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 对于服务和定时任务包，包配置的内容不同，但是结构一致。在包载入时，读取包中的setting.yaml获取报信息
 
-文件夹结构:
-
-.. code-block::
+文件夹结构::
 
     /calculate_service
     ├── __init__.py
@@ -64,9 +61,7 @@ Example:
 
     配置文件setting.yaml,包含四部分：类型、服务基名、版本号和发布的函数。
 
-    Example:
-
-    .. code-block:: yaml
+    Example::
 
         type: service
         service_base_name: calculate
@@ -89,9 +84,7 @@ Example:
     同一个定时任务部署在各台机器上，同时间只有一台机器激活定时任务，其他机器不执行定时任务。
     配置文件setting.yaml,包含四部分：类型、定时任务名、版本号和发布的定时任务。
 
-    Example:
-
-    .. code-block:: yaml
+    Example::
 
         type: crontab
         crontab_name: print
@@ -117,9 +110,7 @@ Example:
 
 客户端不需要启动服务，所以配置运行空间name和消息队列地址auri即可
 
-Example:
-
-.. code-block:: python
+Example::
 
         from kael.work_frame import WORK_FRAME
         AMQ_URI = 'amqp://user:****@127.0.0.1:5672/api' # rabbitmq 地址
@@ -130,7 +121,7 @@ Example:
 
 直接调用微服务名称即可，如上面发布的微服务calculate__add.
 
-.. code-block:: python
+::
 
     result = client.calculate__add(1,2)
 
@@ -141,14 +132,14 @@ RPC COMMAND 命令
 
 在客户端调用command函数，第一个参数为rpc执行的函数名,返回id。函数在服务端执行并返回结果
 
-.. code-block::
+::
 
         r = client.command(function, **kwargs) # 返回消息id
         result = client.get_response(r, timeout=5) # 获取结果
 
 获取服务/定时任务版本 状态
 
-.. code-block::
+::
 
         # 获取最新版本
         client.get_last_version(service='calculate', pkg_type='service')
@@ -163,7 +154,7 @@ RPC COMMAND 命令
 
 更新、安装操作
 
-.. code-block::
+::
 
         client.update_service(pkg_name, **kwargs)
         client.update_crontab(pkg_name, **kwargs)
@@ -181,7 +172,8 @@ not_id: list, 不执行的机器
 
 重启
 
-.. code-block::
+::
 
         client.command("restart_service")
         client.command("restart_crontab")
+
