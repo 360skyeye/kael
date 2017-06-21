@@ -21,6 +21,13 @@ class Cron(object):
     added_jobs = {}
     
     def __init__(self, prefix=COMMON_PREFIX):
+        """
+        定时任务管理类。管理待添加任务和已添加任务。实现添加删除替换用户任务功能。
+        函数分为两类：处理待添加任务，处理已添加到crontab的任务。
+        待添加任务相关函数，作用于to_add_jobs，由类管理，并没有实际写入crontab。使用active_to_add_jobs函数写入crontab。
+        已添加任务相关函数，作用于用户crontab，包括激活待添加任务，删除任务，替换任务，展示任务。
+        :param prefix: 任务名前缀。默认为'KaelCron_'
+        """
         # this must use this load current user cron, otherwise will empty other cron jobs
         self.commet_pre_str = prefix
         self.cron = CronTab(user=True)
@@ -48,7 +55,12 @@ class Cron(object):
             return False
     
     def set_to_add_jobs(self, job_name, jobs):
-        """微服务的格式，添加多个，已有的要删除"""
+        """
+        设置待添加任务，并检查时间格式有效性。添加多个任务，替换已有任务
+        :param job_name: 任务名
+        :param jobs: 微服务jobs列表格式，[{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]
+        :return: 任务是否可以正确添加
+        """
         self.del_to_add_job(job_name)
         success = True
         for j in jobs:
@@ -59,18 +71,25 @@ class Cron(object):
         return True
     
     def del_to_add_job(self, job_name):
-        """删除待保存区中的任务"""
+        """
+        删除待保存区中的任务
+        :param job_name: 任务名
+        """
         self.to_add_jobs.pop(job_name, None)
         return True
     
     def show_to_add_jobs(self):
-        """列出所有待添加的定时任务"""
+        """
+        列出所有待添加的定时任务
+        """
         return self.to_add_jobs
     
     # ************ 以下为实际写入用户crontab的操作***********************
     
     def active_to_add_jobs(self):
-        """激活所有添加的job，单纯的添加所有待添加job。不检查是否已存在job_name"""
+        """
+        激活所有添加的job，单纯地添加所有待添加job。不检查是否已存在job_name
+        """
         for job_name, jobs in self.to_add_jobs.iteritems():
             for c_t in jobs:
                 job = self.cron.new(command=c_t['command'], comment=job_name)
@@ -82,7 +101,9 @@ class Cron(object):
         return True
     
     def del_job(self, job_name=None):
-        """删除用户的定时任务"""
+        """
+        删除用户的定时任务
+        """
         try:
             if job_name:
                 if not job_name.startswith(self.commet_pre_str):
@@ -99,7 +120,12 @@ class Cron(object):
         return False
     
     def user_cron_jobs(self, job_name=None):
-        """列出执行用户的定时任务"""
+        """
+        列出执行用户的定时任务
+        :param job_name: (可选参数)任务名
+        :return: 用户crontab内容，格式为微服务任务格式
+        {'task': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
+        """
         res = {}
         if job_name:
             if not job_name.startswith(self.commet_pre_str):
