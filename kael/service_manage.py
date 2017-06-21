@@ -16,11 +16,12 @@ cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 def get_service_group(conf=None):
     """
-    1.根据配置的service_group名称，进入服务包读取配置，导出配置中发布的服务函数及配置
-    2.进入服务包中，根据服务自己的配置，导出此服务发布的服务函数们
-    支持两种导入策略，包或者包的名称。
+    通过配置获取服务/定时任务包内容
+    1.根据配置的path，确定底层需要执行的服务/定时任务包
+    2.进入服务包中，导出各个包中发布的服务函数/定时任务
 
-    :return
+    :param conf: 配置文件地址，或者配置字典
+    :return 服务函数/定时任务字典
     example:
     {
         'service_group': 'services_default',
@@ -125,16 +126,16 @@ def get_service_group(conf=None):
                     for func in publish_func_names:
                         service_name = "{0}__{1}".format(s['service_base_name'], func)
                         current_pkg_services[s['service_base_name']]['services'].update(
-                            {service_name: getattr(module, func)})
+                                {service_name: getattr(module, func)})
                 except Exception as e:
                     raise ImportError(
-                        "{} has not function: {}. Check {}".format(s['service_base_name'], func, setting_file))
+                            "{} has not function: {}. Check {}".format(s['service_base_name'], func, setting_file))
 
                 Services['service_pkg'].update(current_pkg_services)
 
             elif s.get('type') == 'crontab':
                 crontab_items = s['publish'] or []
-                
+
                 cron_for_work_frame = []
                 for i in crontab_items:
                     time_str = i[0]
@@ -159,7 +160,7 @@ def get_service_group(conf=None):
 def update_service_group(conf, service_install_path):
     """
     install service时，需要在服务包配置文件里面增加service_install_path
-    :param conf:
+    :param conf: 配置文件地址，或者配置字典
     :param service_install_path:
     :return:
     """
