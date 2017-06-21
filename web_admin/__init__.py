@@ -8,9 +8,8 @@ from monkey import patch_erro_handler
 from flask import Flask
 
 APP_NAME = "web_admin"
-
 app = Flask(APP_NAME)
-app.config.from_object('settings')
+app.config.from_object('{0}.settings'.format(__name__))
 WF = WORK_FRAME("test", app=app)
 redis = FlaskRedis(app)
 patch_erro_handler(app)
