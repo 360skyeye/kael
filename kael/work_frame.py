@@ -464,12 +464,14 @@ class WORK_FRAME(micro_server):
         """客户端：更新定时任务"""
         return self._update_pkg_client_helper(crontab_pkg, 'crontab', version, id, not_id, timeout)
 
-    def install_service(self, service_pkg, service_install_path, version=None, id=None, not_id=None, timeout=DEFAULT_TIMEOUT):
+    def install_service(self, service_pkg, service_install_path, version=None, id=None, not_id=None,
+                        timeout=DEFAULT_TIMEOUT):
         """客户端：安装服务"""
         return self._install_pkg_client_helper(service_pkg, 'service', service_install_path,
                                                version, id, not_id, timeout)
 
-    def install_crontab(self, crontab_pkg, service_install_path, version=None, id=None, not_id=None, timeout=DEFAULT_TIMEOUT):
+    def install_crontab(self, crontab_pkg, service_install_path, version=None, id=None, not_id=None,
+                        timeout=DEFAULT_TIMEOUT):
         """客户端：安装定时任务"""
         return self._install_pkg_client_helper(crontab_pkg, 'crontab', service_install_path,
                                                version, id, not_id, timeout)
