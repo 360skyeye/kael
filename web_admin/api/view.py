@@ -64,6 +64,6 @@ def _restart_command(client, pkg_type, res_msg):
     if pkg_type == 'crontab':
         client.command('restart_crontab')
     elif pkg_type == 'service':
-        for server, msg in res_msg:
+        for server, msg in res_msg.iteritems():
             if msg.split('.')[0] == 'Update OK':
                 client.command('restart_service', id=server)
