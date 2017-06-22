@@ -30,7 +30,7 @@ def pull(topic):
         time.sleep(2)
 
 
-@blueprint.route("/status/<string:namespace>", versions=[1], stream=True)
+@blueprint.route("/<string:namespace>/status", versions=[1], stream=True)
 def server_status(namespace):
     client = kael_client(namespace)
     while True:
@@ -43,3 +43,27 @@ def server_status(namespace):
         data = client.get_response(r)
         yield dict(crontab=data)
 
+
+@blueprint.route("/<namespace>/update/<pkg_type>/<service>", versions=[1])
+def server_update(namespace, pkg_type, service):
+    client = kael_client(namespace)
+    res = client._update_pkg_client_helper(service, pkg_type)
+    _restart_command(client, pkg_type, res)
+    return res
+
+
+@blueprint.route("/<namespace>/install/<pkg_type>/<service>/<path:install_path>", versions=[1])
+def server_install(namespace, pkg_type, service, install_path):
+    client = kael_client(namespace)
+    res = client._install_pkg_client_helper(service, pkg_type, install_path)
+    _restart_command(client, pkg_type, res)
+    return res
+
+
+def _restart_command(client, pkg_type, res_msg):
+    if pkg_type == 'crontab':
+        client.command('restart_crontab')
+    elif pkg_type == 'service':
+        for server, msg in res_msg:
+            if msg.split('.')[0] == 'Update OK':
+                client.command('restart_service', id=server)
