@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/6/20
+from flask import request
+
 from . import blueprint
 from .. import WF, kael_client
 import time
@@ -44,18 +46,53 @@ def server_status(namespace):
         yield dict(crontab=data)
 
 
-@blueprint.route("/<namespace>/update/<pkg_type>/<service>", versions=[1])
-def server_update(namespace, pkg_type, service):
+@blueprint.route("/<namespace>/operation", methods=['POST'], versions=[1])
+def server_update_install(namespace):
+    """更新安装功能，全参数POST"""
+    kwargs = request.get_json()
+    # 必选
+    operation = kwargs.get('operation')  # install update
+    pkg_type = kwargs.get('pkg_type')  # service crontab
+    package = kwargs.get('package')
+    install_path = kwargs.get('install_path')
+    # 可选
+    version = kwargs.get('version')
+    server_id = kwargs.get('server_id')  # 只向某机器发送
+    server_not_id = kwargs.get('server_not_id')  # 不向一些机器发送
+
+    if pkg_type not in ('crontab', 'service'):
+        return 'No pkg_type %s' % pkg_type
+    if operation not in ('update', 'install'):
+        return 'No operation %s' % operation
+    if not package:
+        return 'No package'
+
+    if operation == 'install':
+        if not install_path:
+            return 'No install_path'
+        client = kael_client(namespace)
+        res = client._install_pkg_client_helper(package, pkg_type, version=version, id=server_id, not_id=server_not_id)
+        _restart_command(client, pkg_type, res)
+
+    else:
+        client = kael_client(namespace)
+        res = client._update_pkg_client_helper(package, pkg_type, version=version, id=server_id, not_id=server_not_id)
+        _restart_command(client, pkg_type, res)
+    return res
+
+
+@blueprint.route("/<namespace>/update/<pkg_type>/<package>", versions=[1])
+def server_update(namespace, pkg_type, package):
     client = kael_client(namespace)
-    res = client._update_pkg_client_helper(service, pkg_type)
+    res = client._update_pkg_client_helper(package, pkg_type)
     _restart_command(client, pkg_type, res)
     return res
 
 
-@blueprint.route("/<namespace>/install/<pkg_type>/<service>/<path:install_path>", versions=[1])
-def server_install(namespace, pkg_type, service, install_path):
+@blueprint.route("/<namespace>/install/<pkg_type>/<package>/<path:install_path>", versions=[1])
+def server_install(namespace, pkg_type, package, install_path):
     client = kael_client(namespace)
-    res = client._install_pkg_client_helper(service, pkg_type, install_path)
+    res = client._install_pkg_client_helper(package, pkg_type, install_path)
     _restart_command(client, pkg_type, res)
     return res
 
