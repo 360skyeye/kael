@@ -489,7 +489,7 @@ class WORK_FRAME(micro_server):
         print '--- No Source Server and Version Found ---'
 
     def _install_pkg_client_helper(self, pkg, pkg_type, service_install_path, version=None, id=None, not_id=None,
-                                   timeout=5):
+                                   timeout=DEFAULT_TIMEOUT):
         print '--- Update {} <{}> to Version <{}> ---'.format(pkg_type, pkg, version if version else 'latest')
         fid_version = self._get_source_service_server_id(pkg, pkg_type=pkg_type, version=version, timeout=timeout)
         if fid_version:
