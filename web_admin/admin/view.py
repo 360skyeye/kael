@@ -21,8 +21,14 @@ def index():
 
          var eventOutputContainer = document.getElementById("event");
          var evtSrc = new EventSource("/api/v1/pull/*.news");
+         var evtSrc1 = new EventSource("/api/v1/stream/");
 
          evtSrc.onmessage = function(e) {
+             console.log(e.data);
+             eventOutputContainer.innerHTML = e.data;
+         };
+         
+         evtSrc1.onmessage = function(e) {
              console.log(e.data);
              eventOutputContainer.innerHTML = e.data;
          };
