@@ -244,7 +244,7 @@ class WORK_FRAME(micro_server):
             fun = getattr(self, func)
             self.command_fun.setdefault(func, fun)
     
-    def get_last_version(self, service=None, pkg_type='service', timeout=5):
+    def get_last_version(self, service=None, pkg_type='service', timeout=3):
         """获取service或crontab的最新版本"""
         r = self.command("get_pkg_version", pkg=service, pkg_type=pkg_type)
         data = self.get_response(r, timeout=timeout, )
@@ -350,11 +350,11 @@ class WORK_FRAME(micro_server):
         return res
     
     @Command
-    def update_pkg(self, fid_version, pkg, pkg_type, timeout=5):
+    def update_pkg(self, fid_version, pkg, pkg_type, timeout=3):
         return self._update_and_install_pkg(fid_version, pkg, pkg_type=pkg_type, timeout=timeout)
     
     @Command
-    def install_pkg(self, fid_version, pkg, pkg_type, install_path, timeout=5):
+    def install_pkg(self, fid_version, pkg, pkg_type, install_path, timeout=3):
         if pkg_type == 'service':
             loaded_pkg = self.loaded_services
         elif pkg_type == 'crontab':
@@ -393,7 +393,7 @@ class WORK_FRAME(micro_server):
         update_service_group(self.service_group_conf, install_path)
         return "{}, {}".format(res, install_path)
 
-    def _update_and_install_pkg(self, fid_version, pkg, pkg_type, install_path=None, timeout=5):
+    def _update_and_install_pkg(self, fid_version, pkg, pkg_type, install_path=None, timeout=3):
         """
         被更新服务端发起, 更新服务不需要install_path， 安装服务需要install_path
         update service -->  install_path=None, use existed path
@@ -454,26 +454,26 @@ class WORK_FRAME(micro_server):
     # endregion
     
     # region client operation function
-    def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=5):
+    def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=3):
         """客户端：更新服务"""
         return self._update_pkg_client_helper(service_pkg, 'service', version, id, not_id, timeout)
     
-    def update_crontab(self, crontab_pkg, version=None, id=None, not_id=None, timeout=5):
+    def update_crontab(self, crontab_pkg, version=None, id=None, not_id=None, timeout=3):
         """客户端：更新定时任务"""
         return self._update_pkg_client_helper(crontab_pkg, 'crontab', version, id, not_id, timeout)
     
-    def install_service(self, service_pkg, service_install_path, version=None, id=None, not_id=None, timeout=5):
+    def install_service(self, service_pkg, service_install_path, version=None, id=None, not_id=None, timeout=3):
         """客户端：安装服务"""
         return self._install_pkg_client_helper(service_pkg, 'service', service_install_path,
                                                version, id, not_id, timeout)
     
-    def install_crontab(self, crontab_pkg, service_install_path, version=None, id=None, not_id=None, timeout=5):
+    def install_crontab(self, crontab_pkg, service_install_path, version=None, id=None, not_id=None, timeout=3):
         """客户端：安装定时任务"""
         return self._install_pkg_client_helper(crontab_pkg, 'crontab', service_install_path,
                                                version, id, not_id, timeout)
     
     # endregion
-    def _update_pkg_client_helper(self, pkg, pkg_type, version=None, id=None, not_id=None, timeout=5):
+    def _update_pkg_client_helper(self, pkg, pkg_type, version=None, id=None, not_id=None, timeout=3):
         print '--- Update {} <{}> to Version <{}> ---'.format(pkg_type, pkg, version if version else 'latest')
         fid_version = self._get_source_service_server_id(pkg, pkg_type=pkg_type, version=version, timeout=timeout)
         if fid_version:
@@ -498,7 +498,7 @@ class WORK_FRAME(micro_server):
         print '--- No Source Server and Version Found ---'
         
     # 上层控制函数
-    def _get_source_service_server_id(self, service_pkg, pkg_type='service', version=None, timeout=5):
+    def _get_source_service_server_id(self, service_pkg, pkg_type='service', version=None, timeout=3):
         fid_version = {}
         if not version:
             v = self.get_last_version(service_pkg, pkg_type=pkg_type).get(service_pkg)
