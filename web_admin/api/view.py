@@ -82,22 +82,6 @@ def server_update_install(namespace):
     return res
 
 
-@blueprint.route("/<namespace>/update/<pkg_type>/<package>", versions=[1])
-def server_update(namespace, pkg_type, package):
-    client = kael_client(namespace)
-    res = client._update_pkg_client_helper(package, pkg_type)
-    _restart_command(client, pkg_type, res)
-    return res
-
-
-@blueprint.route("/<namespace>/install/<pkg_type>/<package>/<path:install_path>", versions=[1])
-def server_install(namespace, pkg_type, package, install_path):
-    client = kael_client(namespace)
-    res = client._install_pkg_client_helper(package, pkg_type, install_path)
-    _restart_command(client, pkg_type, res)
-    return res
-
-
 def _restart_command(client, pkg_type, res_msg):
     if pkg_type == 'crontab':
         client.command('restart_crontab')
