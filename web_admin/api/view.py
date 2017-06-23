@@ -71,7 +71,7 @@ def server_update_install(namespace):
         if not install_path:
             return 'No install_path'
         client = kael_client(namespace)
-        res = client._install_pkg_client_helper(package, pkg_type, version=version, id=server_id, not_id=server_not_id)
+        res = client._install_pkg_client_helper(package, pkg_type, install_path, version=version, id=server_id, not_id=server_not_id)
         _restart_command(client, pkg_type, res)
 
     else:
@@ -101,6 +101,7 @@ def _restart_command(client, pkg_type, res_msg):
     if pkg_type == 'crontab':
         client.command('restart_crontab')
     elif pkg_type == 'service':
-        for server, msg in res_msg.iteritems():
-            if msg.split('.')[0] == 'Update OK':
-                client.command('restart_service', id=server)
+        if res_msg:
+            for server, msg in res_msg.iteritems():
+                if msg.split('.')[0] == 'Update OK':
+                    client.command('restart_service', id=server)
