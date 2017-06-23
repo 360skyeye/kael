@@ -71,7 +71,8 @@ def server_update_install(namespace):
         if not install_path:
             return 'No install_path'
         client = kael_client(namespace)
-        res = client._install_pkg_client_helper(package, pkg_type, install_path, version=version, id=server_id, not_id=server_not_id)
+        res = client._install_pkg_client_helper(package, pkg_type, install_path,
+                                                version=version, id=server_id, not_id=server_not_id)
         _restart_command(client, pkg_type, res)
 
     else:
