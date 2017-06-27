@@ -46,6 +46,24 @@ def server_status(namespace):
         yield dict(crontab=data)
 
 
+@blueprint.route("/<namespace>/rpc", methods=['POST'], versions=[1])
+def server_rpc(namespace):
+    """
+    RPC, 微服务调用。POST方法接收参数, 1函数名:func 2args: [] 3kwargs: {}
+    :param namespace: 运行空间
+    :return: 微服务调用返回值
+    """
+    arguments = request.get_json()
+    func = arguments.get('func')
+    args = arguments.get('args', [])
+    kwargs = arguments.get('kwargs', {})
+    client = kael_client(namespace)
+    if not func:
+        raise NameError('No function name')
+
+    return getattr(client, func)(*args, **kwargs)
+
+
 @blueprint.route("/<namespace>/operation", methods=['POST'], versions=[1])
 def server_update_install(namespace):
     """更新安装功能，全参数POST"""
