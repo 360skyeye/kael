@@ -220,7 +220,9 @@ class WORK_FRAME(micro_server):
     def get_response(self, qid, timeout=0):
         """work frame 客户端结果获取函数"""
         if timeout:
-            time.sleep(timeout)
+            # time.sleep(timeout)
+            # self.connection.process_data_events(time_limit=timeout)
+            self.connection.sleep(timeout)
         try:
             ch = self.connection.channel()
         except:
