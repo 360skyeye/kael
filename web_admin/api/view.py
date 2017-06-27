@@ -66,10 +66,10 @@ def server_rpc(namespace):
 
 @blueprint.route("/<namespace>/operation", methods=['POST'], versions=[1])
 def server_update_install(namespace):
-    """更新安装功能，全参数POST"""
+    """update/install/restart，全参数POST"""
     kwargs = request.get_json()
     # 必选
-    operation = kwargs.get('operation')  # install update
+    operation = kwargs.get('operation')  # install update restart
     pkg_type = kwargs.get('pkg_type')  # service crontab
     package = kwargs.get('package')
     install_path = kwargs.get('install_path')
@@ -78,23 +78,28 @@ def server_update_install(namespace):
     server_id = kwargs.get('server_id')  # 只向某机器发送
     server_not_id = kwargs.get('server_not_id')  # 不向一些机器发送
 
+    if operation not in ('update', 'install', 'restart'):
+        return 'No operation %s' % operation
+
     if pkg_type not in ('crontab', 'service'):
         return 'No pkg_type %s' % pkg_type
-    if operation not in ('update', 'install'):
-        return 'No operation %s' % operation
+
+    client = kael_client(namespace)
+    if operation == 'restart':
+        r = client.command('restart_{}'.format(pkg_type), id=server_id, not_id=server_not_id)
+        return client.get_response(r, timeout=2)
+
     if not package:
         return 'No package'
 
     if operation == 'install':
         if not install_path:
             return 'No install_path'
-        client = kael_client(namespace)
         res = client._install_pkg_client_helper(package, pkg_type, install_path,
                                                 version=version, id=server_id, not_id=server_not_id)
         _restart_command(client, pkg_type, res)
 
     else:
-        client = kael_client(namespace)
         res = client._update_pkg_client_helper(package, pkg_type, version=version, id=server_id, not_id=server_not_id)
         _restart_command(client, pkg_type, res)
     return res
