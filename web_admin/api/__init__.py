@@ -9,7 +9,6 @@ from ..common import RegexConverter
 flag = "/{0}".format(__name__.replace("{0}.".format(APP_NAME), ""))
 blueprint = Blueprint(__name__, __name__, url_prefix=flag)
 
-
 try:
     c = Config("./")
     c.from_object("{0}.settings".format(__name__))
@@ -22,4 +21,4 @@ except:
 
 patch_flask_route(blueprint, api=True, json=True)
 patch_validate_handler(APP_NAME, blueprint)
-patch_url_convert("regex", RegexConverter,app)
+patch_url_convert("regex", RegexConverter, app)
