@@ -9,6 +9,22 @@ import web_admin
 import os
 import pkgutil
 import types
+from werkzeug.routing import BaseConverter
+
+
+class ListConverter(BaseConverter):
+    def to_python(self, value):
+        return value.split(',')
+
+    def to_url(self, values):
+        return ','.join(BaseConverter.to_url(value)
+                        for value in values)
+
+
+class RegexConverter(BaseConverter):
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
 
 
 def json_converter(f):

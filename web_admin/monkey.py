@@ -77,3 +77,7 @@ def patch_erro_handler(bl=None):
         bl._register_error_handler(None, Exception, common_error_handler)
     else:
         sys.modules['flask'].app._register_error_handler(None, Exception, common_error_handler)
+
+
+def patch_url_convert(convert, converter, app):
+    app.url_map.converters[convert] = converter

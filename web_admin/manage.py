@@ -2,6 +2,9 @@
 # Created by zhangzhuo@360.cn on 17/6/20
 from gevent.wsgi import WSGIServer
 from web_admin import app
+from gevent import monkey
+
+monkey.patch_all()
 
 
 def main():
