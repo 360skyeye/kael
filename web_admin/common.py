@@ -60,7 +60,9 @@ def to_json(content):
     return json.dumps(content, indent=indent, separators=separators, cls=JsonEncoder)
 
 
-def get_reg_blueprint(extlist=[]):
+def get_reg_blueprint(extlist=None):
+    if not extlist:
+        extlist = []
     bls = []
     pkgpath = os.path.dirname(web_admin.__file__)
     for _, name, is_package in pkgutil.iter_modules([pkgpath]):
