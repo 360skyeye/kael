@@ -3,15 +3,15 @@
 from flask import request
 
 from . import blueprint
-from .. import WF, kael_client
+from .. import kael_client
 import time
 import uuid
 
 
-@blueprint.route("/hi/", methods=['GET'], versions=[1])
-def hello():
-    r = WF.get_last_version()
-    return r
+@blueprint.route("/<string:namespace>/hi/", methods=['GET'], versions=[1])
+def hello(namespace):
+    client = kael_client(namespace)
+    return client.get_last_version()
 
 
 @blueprint.route("/stream/", versions=[1], stream=True)
@@ -22,12 +22,13 @@ def subscribe(uid):
         yield result
 
 
-@blueprint.route("/pull/<string:topic>", versions=[1], stream=True)
-def pull(topic):
-    id = str(uuid.uuid4())
-    WF.create_queue(id, exclusive=True, auto_delete=True, )
+@blueprint.route("/<string:namespace>/pull/<string:topic>", versions=[1], stream=True)
+def pull(namespace, topic):
+    uid = str(uuid.uuid4())
+    client = kael_client(namespace)
+    client.create_queue(uid, exclusive=True, auto_delete=True, )
     while True:
-        for i in WF.pull_msg(id, topic):
+        for i in client.pull_msg(uid, topic):
             yield i[-1]
         time.sleep(2)
 
@@ -36,32 +37,35 @@ def pull(topic):
 def server_status(namespace):
     client = kael_client(namespace)
     while True:
-        time.sleep(2)
+        time.sleep(1)
         r = client.command("get_pkg_version", pkg_type='service')
-        data = client.get_response(r)
+        data = client.get_response(r, timeout=1)
         yield dict(service=data)
-        time.sleep(2)
+        time.sleep(1)
         r = client.command("get_pkg_version", pkg_type='crontab')
-        data = client.get_response(r)
+        data = client.get_response(r, timeout=1)
         yield dict(crontab=data)
 
 
-@blueprint.route("/<namespace>/rpc", methods=['POST'], versions=[1])
-def server_rpc(namespace):
+@blueprint.route("/<string:namespace>/rpc/<string:fun_name>", methods=['GET', 'POST'], versions=[1])
+def server_rpc(namespace, fun_name):
     """
     RPC, 微服务调用。POST方法接收参数, 1函数名:func 2args: [] 3kwargs: {}
     :param namespace: 运行空间
-    :return: 微服务调用返回值
+    :param fun_name: 运行函数名
+    :return: GET:返回函数参数格式  POST:返回微服务调用返回值
     """
+    client = kael_client(namespace)
+    if request.method == 'GET':
+        return
     arguments = request.get_json()
-    func = arguments.get('func')
     args = arguments.get('args', [])
     kwargs = arguments.get('kwargs', {})
-    client = kael_client(namespace)
-    if not func:
+
+    if not fun_name:
         raise NameError('No function name')
 
-    return getattr(client, func)(*args, **kwargs)
+    return getattr(client, fun_name)(*args, **kwargs)
 
 
 @blueprint.route("/<namespace>/operation", methods=['POST'], versions=[1])

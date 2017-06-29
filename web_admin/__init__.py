@@ -9,7 +9,6 @@ from flask import Flask
 APP_NAME = "web_admin"
 app = Flask(APP_NAME)
 app.config.from_object('{0}.settings'.format(__name__))
-WF = WORK_FRAME("test", app=app)
 kael_client = lambda name: WORK_FRAME(name=name, app=app)
 redis = FlaskRedis(app)
 patch_erro_handler(app)

@@ -7,7 +7,7 @@ from web_admin import app
 def main():
     app.debug = True
     print app.url_map
-    server = WSGIServer(("", 5000), app)
+    server = WSGIServer(("0.0.0.0", 5000), app)
     server.serve_forever()
 
 
