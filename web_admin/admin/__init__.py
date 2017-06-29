@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/6/20
-from flask import Blueprint
-from .. import app, APP_NAME
+from .. import app
+from ..blueprint_factory import bl
 from flask.config import Config
 
-flag = "/{0}".format(__name__.replace("{0}.".format(APP_NAME), ""))
-blueprint = Blueprint(__name__, __name__, url_prefix=flag)
+blueprint = bl
 
 try:
     c = Config("./")

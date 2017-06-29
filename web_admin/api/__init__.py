@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/6/20
-from flask import Blueprint
+from flask.config import Config
 from .. import app, APP_NAME
 from ..monkey import patch_flask_route, patch_validate_handler
-from flask.config import Config
+from ..blueprint_factory import bl
 
-flag = "/{0}".format(__name__.replace("{0}.".format(APP_NAME), ""))
-blueprint = Blueprint(__name__, __name__, url_prefix=flag)
+blueprint = bl
 
 try:
     c = Config("./")
