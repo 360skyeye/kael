@@ -15,7 +15,7 @@ def hello():
 
 
 @blueprint.route("/stream/", versions=[1], stream=True)
-def subscribe():
+def subscribe(uid):
     while True:
         result = time.time()
         time.sleep(2)
