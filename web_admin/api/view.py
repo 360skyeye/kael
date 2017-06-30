@@ -55,7 +55,8 @@ def server_rpc(namespace, fun_name):
     """
     client = kael_client(namespace)
     if request.method == 'GET':
-        return
+        service_name, func = fun_name.strip().split('__')
+        return client.get_last_version(service=service_name).get(service_name, {}).get('args', {}).get(func)
     arguments = request.get_json()
     args = arguments.get('args', [])
     kwargs = arguments.get('kwargs', {})
