@@ -192,7 +192,7 @@ class WORK_FRAME(micro_server):
 
         fn = self.command_fun.get(rtk)
         if fn:
-            if fn == self.restart_service:
+            if fn == self._restart_service:
                 run(*args, **kwargs)
             else:
                 self.command_pool.spawn(run, *args, **kwargs)
@@ -249,7 +249,7 @@ class WORK_FRAME(micro_server):
 
     def get_last_version(self, service=None, pkg_type='service', timeout=DEFAULT_TIMEOUT):
         """获取service或crontab的最新版本"""
-        r = self.command("get_pkg_version", pkg=service, pkg_type=pkg_type)
+        r = self.command("_get_pkg_version", pkg=service, pkg_type=pkg_type)
         data = self.get_response(r, timeout=timeout, )
         last_dict = {}
         for id in data:
@@ -276,7 +276,7 @@ class WORK_FRAME(micro_server):
         return data
 
     @Command
-    def restart_service(self, process_num=2, daemon=True):
+    def _restart_service(self, process_num=2, daemon=True):
         self.stop_service()
         # queue will auto delete, need recreate
         time.sleep(1)
@@ -285,7 +285,7 @@ class WORK_FRAME(micro_server):
         return 'restart service ok'
 
     @Command
-    def restart_crontab(self):
+    def _restart_crontab(self):
         self.stop_crontab()
         self.loaded_crontab.clear()
         time.sleep(random.choice(range(5)))
@@ -294,7 +294,7 @@ class WORK_FRAME(micro_server):
         return 'restart crontab ok'
 
     @Command
-    def get_pkg_version(self, pkg=None, pkg_type='service'):
+    def _get_pkg_version(self, pkg=None, pkg_type='service'):
         """获取service或crontab包的版本"""
         rdata = {}
         if pkg_type == 'service':
@@ -353,11 +353,11 @@ class WORK_FRAME(micro_server):
         return res
 
     @Command
-    def update_pkg(self, fid_version, pkg, pkg_type, timeout=DEFAULT_TIMEOUT):
+    def _update_pkg(self, fid_version, pkg, pkg_type, timeout=DEFAULT_TIMEOUT):
         return self._update_and_install_pkg(fid_version, pkg, pkg_type=pkg_type, timeout=timeout)
 
     @Command
-    def install_pkg(self, fid_version, pkg, pkg_type, install_path, timeout=DEFAULT_TIMEOUT):
+    def _install_pkg(self, fid_version, pkg, pkg_type, install_path, timeout=DEFAULT_TIMEOUT):
         if pkg_type == 'service':
             loaded_pkg = self.loaded_services
         elif pkg_type == 'crontab':
@@ -458,6 +458,10 @@ class WORK_FRAME(micro_server):
     # endregion
 
     # region client operation function
+    def package_status(self, **kwargs):
+        r = self.command("_get_pkg_version", **kwargs)
+        return self.get_response(r, timeout=kwargs.get('timeout', DEFAULT_TIMEOUT))
+
     def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=DEFAULT_TIMEOUT):
         """客户端：更新服务"""
         return self._update_pkg_client_helper(service_pkg, 'service', version, id, not_id, timeout)
@@ -484,7 +488,7 @@ class WORK_FRAME(micro_server):
         fid_version = self._get_source_service_server_id(pkg, pkg_type=pkg_type, version=version, timeout=timeout)
         if fid_version:
             print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
-            r = self.command("update_pkg", fid_version, pkg, pkg_type=pkg_type, id=id, not_id=not_id, timeout=timeout)
+            r = self.command("_update_pkg", fid_version, pkg, pkg_type=pkg_type, id=id, not_id=not_id, timeout=timeout)
             data = self.get_response(r, timeout=timeout)
             data.update(self.get_response(r, timeout=timeout))
             return data
@@ -496,7 +500,7 @@ class WORK_FRAME(micro_server):
         fid_version = self._get_source_service_server_id(pkg, pkg_type=pkg_type, version=version, timeout=timeout)
         if fid_version:
             print '--- From Source server <{}> Version <{}> ---'.format(fid_version['fid'], fid_version['version'])
-            r = self.command("install_pkg", fid_version, pkg, pkg_type=pkg_type, install_path=service_install_path,
+            r = self.command("_install_pkg", fid_version, pkg, pkg_type=pkg_type, install_path=service_install_path,
                              id=id, not_id=not_id, timeout=timeout)
             data = self.get_response(r, timeout=timeout)
             data.update(self.get_response(r, timeout=timeout))
@@ -511,7 +515,7 @@ class WORK_FRAME(micro_server):
             if v:
                 fid_version = {'version': v[0], 'fid': v[2]}
         else:
-            r = self.command("get_pkg_version", pkg=service_pkg, pkg_type=pkg_type)
+            r = self.command("_get_pkg_version", pkg=service_pkg, pkg_type=pkg_type)
             data = self.get_response(r, timeout=timeout, )
             for server_id, service in data.iteritems():
                 if service_pkg not in service:

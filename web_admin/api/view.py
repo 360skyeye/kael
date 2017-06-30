@@ -38,12 +38,10 @@ def server_status(namespace):
     client = kael_client(namespace)
     while True:
         time.sleep(1)
-        r = client.command("get_pkg_version", pkg_type='service')
-        data = client.get_response(r, timeout=1)
+        data = client.package_status(pkg_type='service')
         yield dict(service=data)
         time.sleep(1)
-        r = client.command("get_pkg_version", pkg_type='crontab')
-        data = client.get_response(r, timeout=1)
+        data = client.package_status(pkg_type='crontab')
         yield dict(crontab=data)
 
 
@@ -90,7 +88,7 @@ def server_update_install(namespace):
 
     client = kael_client(namespace)
     if operation == 'restart':
-        r = client.command('restart_{}'.format(pkg_type), id=server_id, not_id=server_not_id)
+        r = client.command('_restart_{}'.format(pkg_type), id=server_id, not_id=server_not_id)
         return client.get_response(r, timeout=2)
 
     if not package:
@@ -111,9 +109,9 @@ def server_update_install(namespace):
 
 def _restart_command(client, pkg_type, res_msg):
     if pkg_type == 'crontab':
-        client.command('restart_crontab')
+        client.command('_restart_crontab')
     elif pkg_type == 'service':
         if res_msg:
             for server, msg in res_msg.iteritems():
                 if msg.split('.')[0] == 'Update OK':
-                    client.command('restart_service', id=server)
+                    client.command('_restart_service', id=server)
