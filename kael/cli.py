@@ -57,7 +57,7 @@ def run(s, p):
 def install(n, s, p):
     server = WORK_FRAME(n, auri=AMQ_URI)
     print server.install_service(s, p)
-    print server.command('restart_service')
+    print server.command('_restart_service')
 
 
 @cli.command('update', short_help='update service modules.')
@@ -69,7 +69,7 @@ def update(n, s, v):
         raise click.BadParameter('params is wrong.')
     server = WORK_FRAME(n, auri=AMQ_URI)
     print server.update_service(s, version=float(v))
-    print server.command('restart_service')
+    print server.command('_restart_service')
 
 
 @cli.command('restart', short_help='update service modules.')
@@ -79,7 +79,7 @@ def restart(n, s):
     if not s or not n:
         raise click.BadParameter('params is wrong.')
     server = WORK_FRAME(n, auri=AMQ_URI)
-    r = server.command('restart_service', id=s)
+    r = server.command('_restart_service', id=s)
     print json.dumps(server.get_response(r), indent=2)
 
 
@@ -89,7 +89,7 @@ def status(n):
     if not n:
         raise click.BadParameter('namespace is wrong.')
     server = WORK_FRAME(n, auri=AMQ_URI)
-    r = server.command('get_pkg_version')
+    r = server.command('_get_pkg_version')
     res = server.get_response(r)
     # print json.dumps(res, indent=2)
     for s_name in res:

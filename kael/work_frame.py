@@ -256,7 +256,7 @@ class WORK_FRAME(micro_server):
         return data
 
     @Command
-    def _restart_service(self, process_num=2, daemon=True):
+    def _restart_service(self, process_num=2, daemon=True, **kwargs):
         self.stop_service()
         # queue will auto delete, need recreate
         time.sleep(1)
@@ -265,7 +265,7 @@ class WORK_FRAME(micro_server):
         return 'restart service ok'
 
     @Command
-    def _restart_crontab(self):
+    def _restart_crontab(self, **kwargs):
         self.stop_crontab()
         self.loaded_crontab.clear()
         time.sleep(random.choice(range(5)))
@@ -462,6 +462,22 @@ class WORK_FRAME(micro_server):
         r = self.command('_get_crontab_status', crontab)
         data = self.get_response(r)
         return data
+
+    def restart_servers(self, pkg_type, **kwargs):
+        """
+        client: 重启
+        :param pkg_type: service or crontab
+        :param kwargs:
+        :return: data
+        """
+        timeout = kwargs.pop('timeout', DEFAULT_TIMEOUT)
+        if pkg_type == 'service':
+            r = self.command('_restart_service', **kwargs)
+        elif pkg_type == 'crontab':
+            r = self.command('_restart_crontab', **kwargs)
+        else:
+            return 'ERR: pkg_type must be service or crontab'
+        return self.get_response(r, timeout=timeout)
 
     def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=DEFAULT_TIMEOUT):
         """客户端：更新服务"""

@@ -146,8 +146,8 @@ RPC COMMAND 命令
         client.get_last_version(pkg_type='crontab')
 
         # 获取所有版本
-        client.command("get_pkg_version", pkg_type='service')
-        client.command("get_pkg_version", pkg_type='crontab')
+        client.command("_get_pkg_version", pkg_type='service')
+        client.command("_get_pkg_version", pkg_type='crontab')
 
         # 获取定时任务状态
         client.get_all_crontab_status(crontab=None)
@@ -174,6 +174,6 @@ not_id: list, 不执行的机器
 
 ::
 
-        client.command("restart_service")
-        client.command("restart_crontab")
+        client.command("_restart_service")
+        client.command("_restart_crontab")
 

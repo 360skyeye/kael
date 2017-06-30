@@ -64,7 +64,7 @@ def pc():
     print server.calculate__minus(10, 20)
     print server.time__add(1)
 
-    r = server.command("restart_service")
+    r = server.command("_restart_service")
     print r
     time.sleep(3)
     print server.get_response(r)
@@ -74,24 +74,23 @@ def pc():
 def status():
     print '-' * 10, 'service', '-' * 10
     server = WORK_FRAME("test", auri=AMQ_URI)
-    r = server.command("get_pkg_version", pkg_type='service')
+    r = server.command("_get_pkg_version", pkg_type='service')
     pprint(server.get_response(r))
     print '\n\n', '-' * 10, 'crontab', '-' * 10
-    r = server.command("get_pkg_version", pkg_type='crontab')
+    r = server.command("_get_pkg_version", pkg_type='crontab')
     pprint(server.get_response(r))
   
   
 @cli.command()
 def restart_service():
     server = WORK_FRAME("test", auri=AMQ_URI)
-    r = server.command("restart_service", not_id='test-8bee87c0-69de-45d8-919b-6a5014eb00b2')
-    print server.get_response(r, timeout=5)
+    print server.restart_servers('service', timeout=3)
     
     
 @cli.command()
 def restart_crontab():
     server = WORK_FRAME("test", auri=AMQ_URI)
-    r = server.command("restart_crontab")
+    r = server.command("_restart_crontab")
     print server.get_response(r, timeout=5)
 
 
@@ -99,7 +98,7 @@ def restart_crontab():
 def update_s():
     service = 'time'
     server = WORK_FRAME("test", auri=AMQ_URI)
-    r = server.command("get_pkg_version")
+    r = server.command("_get_pkg_version")
     pprint(server.get_response(r, timeout=5, ))
     pprint(server.update_service(service))
 
@@ -108,7 +107,7 @@ def update_s():
 def update_c():
     crontab = 'print'
     server = WORK_FRAME("test", auri=AMQ_URI)
-    r = server.command("get_pkg_version", pkg_type='crontab')
+    r = server.command("_get_pkg_version", pkg_type='crontab')
     pprint(server.get_response(r, timeout=5, ))
     pprint(server.update_crontab(crontab, version=1.0))
 
