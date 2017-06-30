@@ -450,11 +450,17 @@ class WORK_FRAME(micro_server):
         last_dict = {}
         for id in data:
             for service in data[id]:
+                tmp = {
+                    'version': data[id][service]["version"],
+                    'path': data[id][service]["path"],
+                    'id': id,
+                    'args': data[id][service]["args"]
+                }
                 t = last_dict.get(service)
-                if t and data[id][service]["version"] > t[0]:
-                    last_dict[service] = [data[id][service]["version"], data[id][service]["path"], id]
+                if t and data[id][service]["version"] > t.get('version'):
+                    last_dict[service] = tmp
                 else:
-                    last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
+                    last_dict.setdefault(service, tmp)
         return last_dict
 
     def get_all_crontab_status(self, crontab=None):
@@ -530,7 +536,7 @@ class WORK_FRAME(micro_server):
         if not version:
             v = self.get_last_version(service_pkg, pkg_type=pkg_type).get(service_pkg)
             if v:
-                fid_version = {'version': v[0], 'fid': v[2]}
+                fid_version = {'version': v.get('version'), 'fid': v.get('id')}
         else:
             r = self.command("_get_pkg_version", pkg=service_pkg, pkg_type=pkg_type)
             data = self.get_response(r, timeout=timeout, )
