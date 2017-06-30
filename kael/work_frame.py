@@ -247,26 +247,6 @@ class WORK_FRAME(micro_server):
             fun = getattr(self, func)
             self.command_fun.setdefault(func, fun)
 
-    def get_last_version(self, service=None, pkg_type='service', timeout=DEFAULT_TIMEOUT):
-        """获取service或crontab的最新版本"""
-        r = self.command("_get_pkg_version", pkg=service, pkg_type=pkg_type)
-        data = self.get_response(r, timeout=timeout, )
-        last_dict = {}
-        for id in data:
-            for service in data[id]:
-                t = last_dict.get(service)
-                if t and data[id][service]["version"] > t[0]:
-                    last_dict[service] = [data[id][service]["version"], data[id][service]["path"], id]
-                else:
-                    last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
-        return last_dict
-
-    def get_all_crontab_status(self, crontab=None):
-        """获取所有crontab状态"""
-        r = self.command('get_crontab_status', crontab)
-        data = self.get_response(r)
-        return data
-
     # region RPC COMMAND FUNCTION
     @Command
     def system(self, cmd):
@@ -322,7 +302,7 @@ class WORK_FRAME(micro_server):
         return rdata
 
     @Command
-    def get_crontab_status(self, crontab=None):
+    def _get_crontab_status(self, crontab=None):
         if crontab:
             content = self.loaded_crontab.get(crontab)
             if content:
@@ -458,9 +438,30 @@ class WORK_FRAME(micro_server):
     # endregion
 
     # region client operation function
+
     def package_status(self, **kwargs):
+        timeout = kwargs.pop('timeout', DEFAULT_TIMEOUT)
         r = self.command("_get_pkg_version", **kwargs)
-        return self.get_response(r, timeout=kwargs.get('timeout', DEFAULT_TIMEOUT))
+        return self.get_response(r, timeout=timeout)
+
+    def get_last_version(self, service=None, pkg_type='service', timeout=DEFAULT_TIMEOUT):
+        """获取service或crontab的最新版本"""
+        data = self.package_status(pkg=service, pkg_type=pkg_type, timeout=timeout)
+        last_dict = {}
+        for id in data:
+            for service in data[id]:
+                t = last_dict.get(service)
+                if t and data[id][service]["version"] > t[0]:
+                    last_dict[service] = [data[id][service]["version"], data[id][service]["path"], id]
+                else:
+                    last_dict.setdefault(service, [data[id][service]["version"], data[id][service]["path"], id])
+        return last_dict
+
+    def get_all_crontab_status(self, crontab=None):
+        """获取所有crontab状态"""
+        r = self.command('_get_crontab_status', crontab)
+        data = self.get_response(r)
+        return data
 
     def update_service(self, service_pkg, version=None, id=None, not_id=None, timeout=DEFAULT_TIMEOUT):
         """客户端：更新服务"""
