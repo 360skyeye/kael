@@ -109,7 +109,9 @@ def get_service_group(conf=None):
             service_base_name: calculator
             publish_func_names: ['add', 'minus']
             service_name: calculator__add, calculator__minus
+            args: 
             """
+
             if s.get('type') == 'service':
                 publish_func_names = s['publish'] or []
                 sys.path.append(os.path.dirname(pkg_path))
@@ -118,7 +120,8 @@ def get_service_group(conf=None):
                     s['service_base_name']: {
                         'version': s['version'],
                         'path': pkg_path,
-                        'services': {}
+                        'services': {},
+                        'args': s.get('args')
                     }
                 }
 

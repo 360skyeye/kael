@@ -4,5 +4,7 @@ version: 1.8
 publish:
   - add
   - minus
-
+args:
+  add: int, int?
+  minus: {'a': int, 'b': timestamp}
 
