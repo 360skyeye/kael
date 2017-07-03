@@ -9,20 +9,30 @@ from flask import request
 import simplejson as json
 from common import json_converter, stream_gen
 
+_view_map = {}
+
 
 def patch_flask_route(bl=None, json=False, api=False):
     def _route(self, rule, **options):
         def decorator(f, rule=rule):
+            raw_func = getattr(f, '__raw_func__', None) or f
+            stream = options.pop('stream', None)
+            endpoint = options.pop("endpoint", raw_func.__name__)
             versions = options.pop('versions', None)
             if not versions:
                 versions = [1]
-            endpoint = options.pop("endpoint", f.__name__)
-            stream = options.pop('stream', None)
-            if json:
-                if not stream:
-                    f = json_converter(f)
-            if stream:
-                f = stream_gen(f, json)
+
+            if raw_func not in _view_map:
+                if json:
+                    if not stream:
+                        f = json_converter(f)
+                if stream:
+                    f = stream_gen(f, json)
+                f.__raw_func__ = raw_func
+                _view_map[raw_func] = f
+            else:
+                f = _view_map[raw_func]
+
             if api:
                 for v in versions:
                     v_rule = '/v%d%s' % (v, rule)
