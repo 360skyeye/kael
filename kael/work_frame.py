@@ -9,6 +9,7 @@ import time
 import uuid
 import zipfile
 from io import BytesIO
+from functools import wraps
 
 import gevent.monkey
 from gevent.pool import Pool
@@ -21,6 +22,7 @@ DEFAULT_TIMEOUT = 1
 
 
 def Command(func):
+    @wraps(func)
     def warp(cls, *args, **kwargs):
         return func(cls, *args, **kwargs)
 
@@ -167,7 +169,10 @@ class WORK_FRAME(micro_server):
         """server中的命令执行函数"""
 
         def run(*args, **kwargs):
-            result = fn(*args, **kwargs)
+            try:
+                result = fn(*args, **kwargs)
+            except Exception as e:
+                result = "ERR command {}: {}".format(fn.__name__, e.message)
             rbody = result
             self.push_msg(qid=self.command_q, topic="", msg=rbody, reply_id=props.correlation_id, session=ch,
                           to=props.reply_to)
@@ -182,12 +187,12 @@ class WORK_FRAME(micro_server):
             return
 
         # 有id指定
-        rtk = rtk.split('!@')[0]
+        rtk = rtk.split('!@')[0]  # remove not_id
         buf = rtk.split("@")
         rtk = buf[0]
         if len(buf) > 1:
-            id = buf[1]
-            if self.command_q != id:
+            server_id = buf[1]
+            if self.command_q != server_id:
                 return
 
         fn = self.command_fun.get(rtk)
@@ -268,7 +273,7 @@ class WORK_FRAME(micro_server):
     def _restart_crontab(self, **kwargs):
         self.stop_crontab()
         self.loaded_crontab.clear()
-        time.sleep(random.choice(range(5)))
+        time.sleep(random.choice(range(5)))  # random restart in case all set
         self.init_crontabs()
         self.start_crontab()
         return 'restart crontab ok'
@@ -305,9 +310,7 @@ class WORK_FRAME(micro_server):
     def _get_crontab_status(self, crontab=None):
         if crontab:
             content = self.loaded_crontab.get(crontab)
-            if content:
-                return {crontab: content}
-            return {}
+            return {crontab: content} if content else {}
         return self.loaded_crontab
 
     @Command
