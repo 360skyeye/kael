@@ -5,6 +5,6 @@ publish:
   - add
   - minus
 args:
-  add: int, int?
-  minus: {'a': int, 'b': timestamp}
+  add: {'a': int, 'b': int}
+  minus: {'a': int, 'b': int}
 
