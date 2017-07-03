@@ -32,7 +32,8 @@ setup(
         'termcolor>=1.1.0',
         'beautifultable',
         'click>=4.0',
-        'python-crontab>=2.2.2'
+        'python-crontab>=2.2.2',
+        'flask'
     ],
     extras_require={},
     classifiers=[
