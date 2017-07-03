@@ -311,7 +311,7 @@ class WORK_FRAME(micro_server):
         return self.loaded_crontab
 
     @Command
-    def zip_pkg(self, pkg, pkg_type):
+    def _zip_pkg(self, pkg, pkg_type):
         if pkg_type == 'service':
             pkg_path = self.loaded_services[pkg]['path']
         elif pkg_type == 'crontab':
@@ -404,7 +404,7 @@ class WORK_FRAME(micro_server):
         if from_server_version == old_version:
             return 'Package <{}> Version <{}> Already on the server'.format(pkg, from_server_version)
 
-        r = self.command('zip_pkg', pkg, pkg_type, id=from_server_id)
+        r = self.command('_zip_pkg', pkg, pkg_type, id=from_server_id)
         data = self.get_response(r, timeout=timeout)
         if not data:
             return 'ERR: No Zip Content from get_response'
@@ -466,8 +466,7 @@ class WORK_FRAME(micro_server):
     def get_all_crontab_status(self, crontab=None):
         """获取所有crontab状态"""
         r = self.command('_get_crontab_status', crontab)
-        data = self.get_response(r)
-        return data
+        return self.get_response(r)
 
     def restart_servers(self, pkg_type, **kwargs):
         """
