@@ -2,6 +2,7 @@
 import click
 from gevent.wsgi import WSGIServer
 from kael.web_admin import app
+from kael.daemon import Daemon
 
 
 @click.group()
@@ -20,11 +21,39 @@ def web_cli():
     pass
 
 
+class WebServer(Daemon):
+    def run(self, kael_amqp, port):
+        app.config['AMQP_URI'] = kael_amqp
+        server = WSGIServer(("0.0.0.0", port), app)
+        server.serve_forever()
+
+
 @web_cli.command('run', short_help='start a kael web admin for production')
-@click.option('-p', help='Port, default 5000', default=5000)
+@click.option('--port', '-p', help='Port, default 5000', default=5000)
+@click.option('--pid', help='Pid file', default='kael.pid')
+@click.option('--command', '-c', help='Command, [start | stop | restart]',
+              type=click.Choice(['start', 'stop', 'restart']))
 @click.option('--kael_amqp', '-a', help='AMQP_URI, default in flask setting', default=app.config.get('AMQP_URI'))
-def run(p, kael_amqp):
-    raise NotImplementedError('Not Implemented yet, use dev for now')
+def run(pid, command, port, kael_amqp):
+    """
+     Example usage:
+
+    \b
+        $ kael-web run --command start
+        $ kael-web run -c start --kael_amqp "amqp://user:3^)NB@101.199.126.121:5672/api"
+
+    """
+    app.config['AMQP_URI'] = kael_amqp
+    print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
+    if not kael_amqp:
+        raise click.BadParameter('Use --kael_amqp to set AMQP_URI (AMQP_URI not set)')
+    if not command:
+        raise click.BadParameter('Use --command to set. [start | stop | restart]')
+
+    print app.url_map
+
+    ws = WebServer(pidfile=pid)
+    ws.__getattribute__(command)(kael_amqp, port)
 
 
 @web_cli.command('dev', short_help='start a kael web admin for development')
@@ -40,10 +69,11 @@ def dev(p, kael_amqp):
     """
     app.config['AMQP_URI'] = kael_amqp
     print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
+
     if not kael_amqp:
         raise click.BadParameter('Use --kael_amqp to set AMQP_URI (AMQP_URI not set)')
-
     app.debug = True
+
     print app.url_map
     print ' * Running on 0.0.0.0:{} (Press CTRL+C to quit)'.format(p)
     server = WSGIServer(("0.0.0.0", p), app)
