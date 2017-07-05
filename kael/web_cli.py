@@ -43,14 +43,16 @@ def run(pid, command, port, kael_amqp):
         $ kael-web run -c start --kael_amqp "amqp://user:3^)NB@101.199.126.121:5672/api"
 
     """
-    app.config['AMQP_URI'] = kael_amqp
-    print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
-    if not kael_amqp:
-        raise click.BadParameter('Use --kael_amqp to set AMQP_URI (AMQP_URI not set)')
     if not command:
         raise click.BadParameter('Use --command to set. [start | stop | restart]')
+    if command != 'stop':
+        app.config['AMQP_URI'] = kael_amqp
+        print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
+        if not kael_amqp:
+            raise click.BadParameter('Use --kael_amqp to set AMQP_URI (AMQP_URI not set)')
 
-    print app.url_map
+        print app.url_map
+        print ' * Running on 0.0.0.0:{}'.format(port)
 
     ws = WebServer(pidfile=pid)
     ws.__getattribute__(command)(kael_amqp, port)
