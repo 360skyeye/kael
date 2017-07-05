@@ -9,7 +9,7 @@ from flask import Flask
 APP_NAME = "web_admin"
 app = Flask(APP_NAME, instance_relative_config=True)
 app.config.from_object('{0}.settings'.format(__name__))
-app.config.from_pyfile('settings.py')
+app.config.from_pyfile('settings.py', silent=True)
 
 kael_client = lambda name: WORK_FRAME(name=name, app=app)
 redis = FlaskRedis(app)
