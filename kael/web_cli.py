@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import click
 from gevent.wsgi import WSGIServer
-from web_admin import app
+from kael.web_admin import app
 
 
 @click.group()
@@ -39,8 +39,9 @@ def dev(p, kael_amqp):
         $ kael-web dev -p 5000 -a 'amqp://user:****@localhost:5672/api'
     """
     app.config['AMQP_URI'] = kael_amqp
-
-    print 'AMQP_URI:', str(kael_amqp)
+    print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
+    if not kael_amqp:
+        raise click.BadParameter('Use --kael_amqp to set AMQP_URI (AMQP_URI not set)')
 
     app.debug = True
     print app.url_map

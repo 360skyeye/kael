@@ -3,7 +3,7 @@ kael
 """
 import re
 import ast
-from setuptools import setup
+from setuptools import setup, find_packages
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
@@ -20,7 +20,7 @@ setup(
     author_email='liqiongxiang@b.360.cn',
     description='A micro service framework based on MQ',
     long_description=__doc__,
-    packages=['kael'],
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     platforms='any',
@@ -33,6 +33,10 @@ setup(
         'beautifultable',
         'click>=4.0',
         'python-crontab>=2.2.2',
+        'simplejson',
+        'pymongo',
+        'flask_redis',
+        'jsonschema',
         'flask'
     ],
     extras_require={},
@@ -51,6 +55,7 @@ setup(
         'console_scripts': [
             'kael=kael.cli:main',
             'kael-crontab=kael.cron:kael_crontab',
+            'kael-web=kael.web_cli:web_main',
         ]
         
     }

@@ -3,4 +3,4 @@
 /news.lock
 /doc/kael.rst
 /doc/modules.rst
-instance/settings.py
+kael/instance/settings.py

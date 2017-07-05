@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Created by zhangzhuo@360.cn on 17/6/20
 from gevent.wsgi import WSGIServer
-from web_admin import app
+from kael.web_admin import app
 
 
 def main():
