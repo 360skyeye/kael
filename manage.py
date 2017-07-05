@@ -6,7 +6,6 @@ from web_admin import app
 
 def main():
     print 'AMQP_URI:', app.config['AMQP_URI']
-    print 'REDIS_URL:', app.config['REDIS_URL']
 
     app.debug = True
     print app.url_map
