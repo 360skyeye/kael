@@ -1,0 +1,79 @@
+device:
+  register_device:
+    type: object
+    properties:
+      device_type:
+        title: "设备类型"
+        type: string
+        enum: {{ settings['DEVICE_TYPES']|list }}
+      device_id:
+        title: "设备ID"
+        type: string
+        format: md5
+      cert:
+        title: "设备证书(base64编码)"
+        type: string
+      name:
+        title: "设备名称"
+        type: string
+        maxLength: 32
+      description:
+        title: "设备描述"
+        type: string
+        maxLength: 255
+    required:
+      - device_type
+      - device_id
+
+message:
+  channel_handle:
+    type: object
+    properties:
+      token:
+        title: "会话Token"
+        type: string
+        maxLength: 32
+      topic:
+        title: "消息的Topic"
+        type: string
+        maxLength: 255
+      url:
+        title: "Webservice服务的URL"
+        type: string
+        format: url
+    required:
+      - token
+
+  rpc_message:
+    type: object
+    properties:
+      token:
+        title: "会话Token"
+        type: string
+        maxLength: 32
+      body:
+        title: "消息内容"
+        type: string
+    required:
+      - token
+      - body
+
+  message_handle:
+    type: object
+    properties:
+      token:
+        title: "会话Token"
+        type: string
+        maxLength: 32
+      body:
+        title: "消息内容"
+        type: string
+      limit:
+        title: "获取的最大消息数量"
+        type: number
+        minumum: 0
+      reply_id:
+        title: "应答对应的请求消息的ID号"
+        type: string
+    required:
+      - token
