@@ -5,11 +5,13 @@ from kael.web_admin import app
 
 
 def main():
-    print 'AMQP_URI:', app.config['AMQP_URI']
+    print '\n', 'AMQP_URI:', app.config['AMQP_URI'], '\n'
 
     app.debug = True
+    port = 5000
     print app.url_map
-    server = WSGIServer(("0.0.0.0", 5000), app)
+    print ' * Running on 0.0.0.0:{} (Press CTRL+C to quit)'.format(port)
+    server = WSGIServer(("0.0.0.0", port), app)
     server.serve_forever()
 
 
