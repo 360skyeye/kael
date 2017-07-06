@@ -7,7 +7,7 @@ from datetime import date, datetime
 # import web_admin
 import simplejson as json
 from bson import ObjectId
-from flask import Response, current_app, make_response, request
+from flask import Response, current_app, make_response, request, stream_with_context
 from werkzeug.routing import BaseConverter
 
 from kael.web_admin import exceptions
@@ -136,7 +136,7 @@ def stream_gen(f, flag=False):
 
         rf = f(*args, **kwargs)
         if isinstance(rf, types.GeneratorType):
-            return Response(SEE(rf), mimetype="text/event-stream")
+            return Response(stream_with_context(SEE(rf)), mimetype="text/event-stream")
         else:
             raise exceptions.InternalError
 
