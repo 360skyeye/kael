@@ -273,7 +273,8 @@ class WORK_FRAME(micro_server):
     def _restart_crontab(self, **kwargs):
         self.stop_crontab()
         self.loaded_crontab.clear()
-        time.sleep(random.choice(range(5)))  # random restart in case all set
+        # random restart in case all set
+        time.sleep(random.choice([0.01, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5]))
         self.init_crontabs()
         self.start_crontab()
         return 'restart crontab ok'
