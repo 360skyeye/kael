@@ -40,7 +40,7 @@ def run(pid, command, port, kael_amqp):
 
     \b
         $ kael-web run --command start
-        $ kael-web run -c start --kael_amqp "amqp://user:3^)NB@101.199.126.121:5672/api"
+        $ kael-web run -c start --kael_amqp 'amqp://user:****@localhost:5672/api'
 
     """
     if not command:
@@ -67,7 +67,7 @@ def dev(p, kael_amqp):
 
     \b
         $ kael-web dev
-        $ kael-web dev -p 5000 -a 'amqp://user:****@localhost:5672/api'
+        $ kael-web dev -p 5000 --kael_amqp 'amqp://user:****@localhost:5672/api'
     """
     app.config['AMQP_URI'] = kael_amqp
     print '\n', 'AMQP_URI:', str(kael_amqp), '\n'

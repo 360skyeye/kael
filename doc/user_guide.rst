@@ -130,13 +130,6 @@ Example::
 
 RPC COMMAND 命令
 
-在客户端调用command函数，第一个参数为rpc执行的函数名,返回id。函数在服务端执行并返回结果
-
-::
-
-        r = client.command(function, **kwargs) # 返回消息id
-        result = client.get_response(r, timeout=5) # 获取结果
-
 获取服务/定时任务版本 状态
 
 ::
@@ -146,8 +139,8 @@ RPC COMMAND 命令
         client.get_last_version(pkg_type='crontab')
 
         # 获取所有版本
-        client.command("_get_pkg_version", pkg_type='service')
-        client.command("_get_pkg_version", pkg_type='crontab')
+        client.package_status(pkg=None, pkg_type='service')
+        client.package_status(pkg=None, pkg_type='crontab')
 
         # 获取定时任务状态
         client.get_all_crontab_status(crontab=None)
@@ -174,6 +167,13 @@ not_id: list, 不执行的机器
 
 ::
 
-        client.command("_restart_service")
-        client.command("_restart_crontab")
+        client.restart_servers('service')
+        client.restart_servers('crontab')
 
+
+在客户端调用command函数，第一个参数为rpc执行的函数名,返回id。函数在服务端执行并返回结果
+
+::
+
+        r = client.command(function, **kwargs) # 返回消息id
+        result = client.get_response(r, timeout=5) # 获取结果
