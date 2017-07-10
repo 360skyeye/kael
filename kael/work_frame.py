@@ -458,8 +458,10 @@ class WORK_FRAME(micro_server):
                     'version': data[id][service]["version"],
                     'path': data[id][service]["path"],
                     'id': id,
-                    'args': data[id][service]["args"]
                 }
+                if pkg_type == 'service':
+                    tmp.update({'args': data[id][service]["args"]})
+
                 t = last_dict.get(service)
                 if t and data[id][service]["version"] > t.get('version'):
                     last_dict[service] = tmp
