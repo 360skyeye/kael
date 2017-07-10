@@ -460,7 +460,7 @@ class WORK_FRAME(micro_server):
                     'id': id,
                 }
                 if pkg_type == 'service':
-                    tmp.update({'args': data[id][service]["args"]})
+                    tmp.update({'args': data[id][service]["args"] or {}})
 
                 t = last_dict.get(service)
                 if t and data[id][service]["version"] > t.get('version'):
