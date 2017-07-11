@@ -8,7 +8,7 @@
 import inspect
 import logging
 import os
-import signal
+# import signal
 import sys
 import time
 from functools import wraps
@@ -22,6 +22,7 @@ from gevent.pool import Pool
 from termcolor import colored
 
 from kael import MQ
+from kael.cron import Cron
 
 gevent.monkey.patch_all()
 
@@ -33,6 +34,7 @@ class micro_server(MQ):
         self.app = app
         self.lock = lock
         self.services = {}
+        self.cron_manage = Cron()  # {'<cron_name>': [{'time_str': '1 * * * *', 'command': '/bin/bash xx.sh'}]}
         self.id = str(uuid4())
         self.pro = {}
         self.pid = None
@@ -51,11 +53,10 @@ class micro_server(MQ):
             else:
                 raise
 
-    def start(self, n=1, daemon=True):
-        print 'MICRO START', '\n', 30 * '-'
-        # 防止子进程terminate后变为僵尸进程
-        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
-
+    def start_service(self, n=1, daemon=True):
+        """启动服务"""
+        print 'MICRO START SERVICE', '\n', 80 * '-'
+        # 启动服务
         self.register_all_service_queues()
         for i in range(n):
             pro = Process(target=self.proc)
@@ -63,22 +64,58 @@ class micro_server(MQ):
             pro.start()
             self.pro.setdefault(pro.pid, pro)
 
-    def stop(self):
+    def stop_service(self):
+        """停止服务"""
         # 停止所有子进程
         for pid, pro in self.pro.iteritems():
             try:
                 pro.terminate()
             except Exception as e:
                 logging.exception(e)
+    
+    def start_crontab(self):
+        """设置定时任务"""
+        print 'MICRO START CRONTAB', '\n', 80 * '-'
+        self.active_crontabs()
+ 
+    def stop_crontab(self):
+        """删除定时任务"""
+        self.cron_manage.clean_added_jobs()
 
-    def restart(self, n=1, daemon=True):
-        self.stop()
-        # * 需要保证queue一定存在，存在可能：重启之间的时间queue被删除了，那后面监听消费queue会报错
-        # 一种思路是等待一段时间，等queue自动全删完了，再重新建（依赖于auto_delete的响应时间）
-        time.sleep(2)
+    # region crontab
+    def add_crontab(self, cron_name, command, time_str):
+        """
+        添加单条crontab，供手动单独添加使用。
+        :param cron_name:   定时任务名
+        :param command:     定时任务命令
+        :param time_str:    定时任务时间
+        :return bool
+        """
+        return self.cron_manage.add(command=command, time_str=time_str, job_name=cron_name)
+        
+    def del_crontab(self, cron_name):
+        """
+        删除待添加的定时任务，供手动单独删除使用。
+        :param cron_name: 删除待添加任务中的定时任务
+        :return: bool
+        """
+        return self.cron_manage.del_to_add_job(cron_name)
+        
+    def set_crontabs(self, cron_name, jobs):
+        """
+        供批量添加修改使用。替换已有，增加未有。(可供work frame调用)
+        :param cron_name:   定时任务名
+        :param jobs:        定时任务列表 [{'command':'', 'time_str':'' }]
+        :return bool
+        cron_name下的任务，只要有写错的(time_str)，则cron整体都不能添加，返回False，应修改至全部正确
+        """
+        return self.cron_manage.set_to_add_jobs(job_name=cron_name, jobs=jobs)
 
-        self.start(n, daemon)
-
+    def active_crontabs(self):
+        """将预添加的定时任务写入系统，没有则新增，有则删除旧再新增"""
+        self.cron_manage.micro_service_active_jobs()
+    # endregion
+        
     def proc(self):
         if self.lock:
             self.single_instance()

@@ -1,0 +1,7 @@
+type: crontab
+crontab_name: print
+version: 1.0
+publish:
+   - ['* * * * *', write.py]
+   - ['* * * * *', print.py]
+   - ['*/2 * * * *', cat word.txt]

@@ -1,4 +1,4 @@
-
+type: service
 service_base_name: time
 version: 1.0
 publish:
