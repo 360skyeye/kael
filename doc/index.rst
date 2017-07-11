@@ -10,6 +10,8 @@ kael 是一个基于消息队列实现的微服务框架。
 
    install
    user_guide
+   kael-cli
+   kael-web
 
 模块说明
 -------------
