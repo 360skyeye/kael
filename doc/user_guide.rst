@@ -18,12 +18,17 @@ kael work frame是服务与代码管理框架，建立在micro_service层之上�
 Example::
 
     from kael.work_frame import WORK_FRAME
+    # 参数
     AMQ_URI = 'amqp://user:****@127.0.0.1:5672/api' # rabbitmq 地址
     namespace = 'test' # 运行空间
     conf_dir = '/data/frame_pkg_setting.yaml'
+
+    # 服务端启动代码
     server = WORK_FRAME(name=namespace, auri=AMQ_URI, service_group_conf=conf_dir)
     server.frame_start()
 
+
+两行代码便启动了微服务
 
 框架配置文件格式
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -41,8 +46,8 @@ Example::
       - /data/time_service
       - ./task1_crontab
 
-接下来进入最内层服务包与定时任务包文件夹中，一窥究竟
 
+接下来进入最内层服务包与定时任务包文件夹中，一窥究竟。
 
 服务包与定时任务包
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -59,7 +64,7 @@ Example::
 
 1. 服务包
 
-    配置文件setting.yaml,包含四部分：类型、服务基名、版本号和发布的函数。
+    配置文件setting.yaml,包含五部分：类型、服务基名、版本号和发布的函数，函数参数的格式验证（可选）。
 
     Example::
 
@@ -69,11 +74,14 @@ Example::
         publish:
          - add
          - minus
+        args:
+         {add: <json schema validations>}
 
     :type: 对于服务包，类型为'service'。
     :version: 版本号标志此包代码的版本，用于升级/安装代码，支持指定版本号升级。
     :service_base_name: 服务包的基名，与发布函数共同构成最终发布的微服务名。
     :publish: 服务包内发布的函数名，函数定义在包的*__init__.py*文件中。
+    :args: 发布的函数的参数验证格式，使用json schema的格式，为以后验证参数预留。
 
     微服务名=包基名__发布函数名，上例中结构发布的微服务分别为：
     calculate__add, calculate__minus
@@ -115,6 +123,7 @@ Example::
         from kael.work_frame import WORK_FRAME
         AMQ_URI = 'amqp://user:****@127.0.0.1:5672/api' # rabbitmq 地址
         namespace = 'test' # 运行空间
+
         client = WORK_FRAME(name=namespace, auri=AMQ_URI)
 
 使用微服务：
