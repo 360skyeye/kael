@@ -33,7 +33,7 @@ Example:::
 
 :生产模式: kael-web run
 
-生产模式为daemon模式，有start|stop|restart三种命令
+生产模式为daemon模式，有"start stop restart"三种命令
 
 参数:::
 
@@ -43,10 +43,9 @@ Example:::
                                   Command, [start | stop | restart]
   -a, --kael_amqp TEXT            AMQP_URI, default in flask setting
 
-Example usage:
+Example ::
 
-      $ kael-web run --command start --kael_amqp 'amqp://user:****@localhost:5672/api'
-
+  $ kael-web run --command start --kael_amqp 'amqp://user:****@localhost:5672/api'
 
 前端仍在开发中，敬请期待...
 
