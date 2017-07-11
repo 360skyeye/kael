@@ -180,9 +180,3 @@ not_id: list, 不执行的机器
         client.restart_servers('crontab')
 
 
-在客户端调用command函数，第一个参数为rpc执行的函数名,返回id。函数在服务端执行并返回结果
-
-::
-
-        r = client.command(function, **kwargs) # 返回消息id
-        result = client.get_response(r, timeout=5) # 获取结果
