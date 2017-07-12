@@ -33,6 +33,8 @@ Example::
 框架配置文件格式
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+此文件主要作用是：指定所有希望载入的微服务包的路径。
+
 配置文件为yaml格式，两部分构成：服务包空间名、服务包路径。
 
 :服务包空间名: service_group，框架初始化时若没有指定name，则取此值作为运行空间名。
@@ -154,29 +156,38 @@ RPC COMMAND 命令
         # 获取定时任务状态
         client.get_all_crontab_status(crontab=None)
 
-更新、安装操作
+安装、更新操作
+
+安装：对于某些服务包，有些服务器上有，有些服务器上不存在。若想将服务包也装上，使用install命令。需指定安装的路径。
+
+更新：对于某些服务包，服务器上大家都有，只是版本不同。这时可以使用更新命令，将服务包更新到相同版本。
 
 ::
 
-        client.update_service(pkg_name, **kwargs)
-        client.update_crontab(pkg_name, **kwargs)
         client.install_service(pkg_name, install_path, **kwargs)
         client.install_crontab(pkg_name, install_path, **kwargs)
+        client.update_service(pkg_name, **kwargs)
+        client.update_crontab(pkg_name, **kwargs)
 
 还有可选参数
 
-version：指定版本，默认为最高版本
+:version: 指定版本，默认为最高版本
+:id: 指定机器执行
+:not_id: list, 不执行的机器
 
-id: 指定机器执行
+::
 
-not_id: list, 不执行的机器
-
+    client.update_service('calculate', version=1.5)
+    client.update_service('calculate', id='test-7e65146b-930b-44d0-b8e8-73c0a7f89876')
+    client.update_service('calculate', not_id=['server_1_id', 'server_2_id'])
 
 重启
 
 ::
-
+        重启服务：
         client.restart_servers('service')
+
+        重启定时任务：
         client.restart_servers('crontab')
 
 
