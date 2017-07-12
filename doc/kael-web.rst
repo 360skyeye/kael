@@ -1,7 +1,7 @@
 
 kael-web
 ==========================
-kael-web是基于kael命令的web界面封装，方便地图形化管理kael系统。
+kael-web是基于kael命令的web界面封装，方便地图形化管理kael系统。(仍在开发中)
 
 目前后端实现以下api：
 
