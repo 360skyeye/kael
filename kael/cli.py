@@ -54,43 +54,57 @@ def run(s, p):
 @click.option('-n', help='service namespace.', default=False)
 @click.option('-s', help='service module.', default=False)
 @click.option('-p', help='service module install path.', default=False)
-def install(n, s, p):
+@click.option('-v', help='(optional) service version. default latest', default=None)
+@click.option('-i', help='(optional) server name id. which server want to restart? default all servers', default=None)
+@click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
+def install(n, s, p, v, i, timeout):
+    if not n or not s:
+        raise click.BadParameter('params is wrong.')
+    v = float(v) if v else None
+    timeout = float(timeout)
     server = WORK_FRAME(n, auri=AMQ_URI)
-    print server.install_service(s, p)
-    print server.command('_restart_service')
+    print server.install_service(s, p, timeout=timeout, id=i, version=v)
+    print server.restart_servers(pkg_type='service', timeout=timeout, id=i)
 
 
 @cli.command('update', short_help='update service modules.')
 @click.option('-n', help='service namespace.', default=False)
 @click.option('-s', help='service module.', default=False)
-@click.option('-v', help='service version.', default=False)
-def update(n, s, v):
-    if not n or not s or not v:
+@click.option('-v', help='(optional) service version. default latest', default=None)
+@click.option('-i', help='(optional) server name id. which server want to restart? default all servers', default=None)
+@click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
+def update(n, s, v, i, timeout):
+    if not n or not s:
         raise click.BadParameter('params is wrong.')
+    v = float(v) if v else None
+    timeout = float(timeout)
     server = WORK_FRAME(n, auri=AMQ_URI)
-    print server.update_service(s, version=float(v))
-    print server.command('_restart_service')
+    print server.update_service(s, timeout=timeout, id=i, version=v)
+    print server.restart_servers(pkg_type='service', timeout=timeout, id=i)
 
 
-@cli.command('restart', short_help='update service modules.')
+@cli.command('restart', short_help='restart service modules.')
 @click.option('-n', help='service namespace.', default=False)
-@click.option('-s', help='service name.', default=False)
-def restart(n, s):
-    if not s or not n:
+@click.option('-i', help='(optional) server name id. which server want to restart? default all servers', default=None)
+@click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
+def restart(n, i, timeout):
+    if not n:
         raise click.BadParameter('params is wrong.')
+    timeout = float(timeout)
     server = WORK_FRAME(n, auri=AMQ_URI)
-    r = server.command('_restart_service', id=s)
-    print json.dumps(server.get_response(r), indent=2)
+    res = server.restart_servers(pkg_type='service', timeout=timeout, id=i)
+    print json.dumps(res, indent=2)
 
 
 @cli.command('status', short_help='list all service modules.')
 @click.option('-n', help='service namespace.', default=False)
-def status(n):
+@click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
+def status(n, timeout):
     if not n:
         raise click.BadParameter('namespace is wrong.')
+    timeout = float(timeout)
     server = WORK_FRAME(n, auri=AMQ_URI)
-    r = server.command('_get_pkg_version')
-    res = server.get_response(r)
+    res = server.package_status(timeout=timeout)
     # print json.dumps(res, indent=2)
     for s_name in res:
         print s_name
