@@ -181,13 +181,9 @@ RPC COMMAND 命令
     client.update_service('calculate', id='test-7e65146b-930b-44d0-b8e8-73c0a7f89876')
     client.update_service('calculate', not_id=['server_1_id', 'server_2_id'])
 
-重启
+重启操作
 
 ::
-        重启服务：
-        client.restart_servers('service')
 
-        重启定时任务：
-        client.restart_servers('crontab')
-
-
+    client.restart_servers('service') # 重启服务
+    client.restart_servers('crontab') # 重启定时任务
