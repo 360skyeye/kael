@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+import os
 import click
 from gevent.wsgi import WSGIServer
 from kael.web_admin import app
 from kael.daemon import Daemon
+
+AMQ_URI = os.environ.get('KAEL_AURI')
 
 
 @click.group()
@@ -31,9 +34,9 @@ class WebServer(Daemon):
 @web_cli.command('run', short_help='start a kael web admin for production')
 @click.option('--port', '-p', help='Port, default 5000', default=5000)
 @click.option('--pid', help='Pid file', default='kael.pid')
-@click.option('--command', '-c', help='Command, [start | stop | restart]',
-              type=click.Choice(['start', 'stop', 'restart']))
-@click.option('--kael_amqp', '-a', help='AMQP_URI, default in flask setting', default=app.config.get('AMQP_URI'))
+@click.option('--command', '-c', help='Command, [start | stop | restart | status]',
+              type=click.Choice(['start', 'stop', 'restart', 'status']))
+@click.option('--kael_amqp', '-a', help='AMQP_URI, default in flask setting', default=None)
 def run(pid, command, port, kael_amqp):
     """
      Example usage:
@@ -44,15 +47,19 @@ def run(pid, command, port, kael_amqp):
 
     """
     if not command:
-        raise click.BadParameter('Use --command to set. [start | stop | restart]')
+        raise click.BadParameter('Use --command to set. [start | stop | restart | status]')
+
     if command != 'stop':
+        kael_amqp = kael_amqp or AMQ_URI or app.config.get('AMQP_URI')
         app.config['AMQP_URI'] = kael_amqp
         print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
         if not kael_amqp:
             raise click.BadParameter('Use --kael_amqp to set AMQP_URI (AMQP_URI not set)')
 
-        print app.url_map
-        print ' * Running on 0.0.0.0:{}'.format(port)
+        print 'pid:', pid
+        if command != 'status':
+            print app.url_map
+            print ' * Running on 0.0.0.0:{}'.format(port)
 
     ws = WebServer(pidfile=pid)
     ws.__getattribute__(command)(kael_amqp, port)
@@ -60,7 +67,7 @@ def run(pid, command, port, kael_amqp):
 
 @web_cli.command('dev', short_help='start a kael web admin for development')
 @click.option('-p', help='Dev Server Port, default 5000', default=5000)
-@click.option('--kael_amqp', '-a', help='AMQP_URI, default in flask setting', default=app.config.get('AMQP_URI'))
+@click.option('--kael_amqp', '-a', help='AMQP_URI, default in flask setting', default=None)
 def dev(p, kael_amqp):
     """
     Example usage:
@@ -69,6 +76,7 @@ def dev(p, kael_amqp):
         $ kael-web dev
         $ kael-web dev -p 5000 --kael_amqp 'amqp://user:****@localhost:5672/api'
     """
+    kael_amqp = kael_amqp or AMQ_URI or app.config.get('AMQP_URI')
     app.config['AMQP_URI'] = kael_amqp
     print '\n', 'AMQP_URI:', str(kael_amqp), '\n'
 

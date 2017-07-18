@@ -198,6 +198,9 @@ class Daemon(object):
         self.stop()
         self.start(*args, **kwargs)
 
+    def status(self, *args, **kwargs):
+        return 'Running' if self.is_running() else 'Not running'
+
     def get_pid(self):
         try:
             pf = open(self.pidfile, 'r')
