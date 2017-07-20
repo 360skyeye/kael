@@ -5,9 +5,10 @@ import click
 import os
 import json
 from . import __version__
-from kael.microservice import micro_server
+# from kael.microservice import micro_server
 from kael.work_frame import WORK_FRAME
 from beautifultable import BeautifulTable
+
 AMQ_URI = os.environ.get('KAEL_AURI')
 
 
@@ -34,12 +35,12 @@ def run(p, kael_amqp):
     if p:
         if not os.path.isfile(p) or os.path.splitext(p)[1] != '.yaml':
             raise click.BadParameter(
-                'the param must be yaml config')
+                    'the param must be yaml config')
         w = WORK_FRAME(auri=kael_amqp, service_group_conf=p)
         w.frame_start()
     else:
         raise click.UsageError(
-            'Could not find other command. You can run kael run --help to see more information')
+                'Could not find other command. You can run kael run --help to see more information')
 
 
 @cli.command('install', short_help='install service modules.')
