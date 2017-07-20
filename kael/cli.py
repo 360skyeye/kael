@@ -28,20 +28,10 @@ def cli():
 
 
 @cli.command('run', short_help='Runs a development server.')
-@click.option('-s', help='Run a simple server.', is_flag=True)
 @click.option('-p', help='Run a custom server.')
 @click.option('--kael_amqp', help='AMQP_URI, default KAEL_AURI in environ', default=AMQ_URI)
-def run(s, p, kael_amqp):
-    if s:
-        server = micro_server("s1", auri=kael_amqp)
-
-        @server.service("foobar")
-        def h(a):
-            print a, os.getpid()
-            return {"b": a}
-
-        server.start_service(2, daemon=False)
-    elif p:
+def run(p, kael_amqp):
+    if p:
         if not os.path.isfile(p) or os.path.splitext(p)[1] != '.yaml':
             raise click.BadParameter(
                 'the param must be yaml config')
