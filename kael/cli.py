@@ -22,6 +22,7 @@ def cli():
     \b
         $ export KAEL_AURI='amqp://user:****@127.0.0.1:5672/api'
         $ kael run -s
+        $ kael run -p --kael_amqp 'amqp://user:****@127.0.0.1:5672/api'
     """
     pass
 
@@ -29,9 +30,10 @@ def cli():
 @cli.command('run', short_help='Runs a development server.')
 @click.option('-s', help='Run a simple server.', is_flag=True)
 @click.option('-p', help='Run a custom server.')
-def run(s, p):
+@click.option('--kael_amqp', help='AMQP_URI, default KAEL_AURI in environ', default=AMQ_URI)
+def run(s, p, kael_amqp):
     if s:
-        server = micro_server("s1", auri=AMQ_URI)
+        server = micro_server("s1", auri=kael_amqp)
 
         @server.service("foobar")
         def h(a):
@@ -43,7 +45,7 @@ def run(s, p):
         if not os.path.isfile(p) or os.path.splitext(p)[1] != '.yaml':
             raise click.BadParameter(
                 'the param must be yaml config')
-        w = WORK_FRAME(auri=AMQ_URI, service_group_conf=p)
+        w = WORK_FRAME(auri=kael_amqp, service_group_conf=p)
         w.frame_start()
     else:
         raise click.UsageError(
@@ -57,12 +59,13 @@ def run(s, p):
 @click.option('-v', help='(optional) service version. default latest', default=None)
 @click.option('-i', help='(optional) server name id. which server want to restart? default all servers', default=None)
 @click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
-def install(n, s, p, v, i, timeout):
+@click.option('--kael_amqp', help='AMQP_URI, default KAEL_AURI in environ', default=AMQ_URI)
+def install(n, s, p, v, i, timeout, kael_amqp):
     if not n or not s:
         raise click.BadParameter('params is wrong.')
     v = float(v) if v else None
     timeout = float(timeout)
-    server = WORK_FRAME(n, auri=AMQ_URI)
+    server = WORK_FRAME(n, auri=kael_amqp)
     print server.install_service(s, p, timeout=timeout, id=i, version=v)
     print server.restart_servers(pkg_type='service', timeout=timeout, id=i)
 
@@ -73,12 +76,13 @@ def install(n, s, p, v, i, timeout):
 @click.option('-v', help='(optional) service version. default latest', default=None)
 @click.option('-i', help='(optional) server name id. which server want to restart? default all servers', default=None)
 @click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
-def update(n, s, v, i, timeout):
+@click.option('--kael_amqp', help='AMQP_URI, default KAEL_AURI in environ', default=AMQ_URI)
+def update(n, s, v, i, timeout, kael_amqp):
     if not n or not s:
         raise click.BadParameter('params is wrong.')
     v = float(v) if v else None
     timeout = float(timeout)
-    server = WORK_FRAME(n, auri=AMQ_URI)
+    server = WORK_FRAME(n, auri=kael_amqp)
     print server.update_service(s, timeout=timeout, id=i, version=v)
     print server.restart_servers(pkg_type='service', timeout=timeout, id=i)
 
@@ -87,11 +91,12 @@ def update(n, s, v, i, timeout):
 @click.option('-n', help='service namespace.', default=False)
 @click.option('-i', help='(optional) server name id. which server want to restart? default all servers', default=None)
 @click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
-def restart(n, i, timeout):
+@click.option('--kael_amqp', help='AMQP_URI, default KAEL_AURI in environ', default=AMQ_URI)
+def restart(n, i, timeout, kael_amqp):
     if not n:
         raise click.BadParameter('params is wrong.')
     timeout = float(timeout)
-    server = WORK_FRAME(n, auri=AMQ_URI)
+    server = WORK_FRAME(n, auri=kael_amqp)
     res = server.restart_servers(pkg_type='service', timeout=timeout, id=i)
     print json.dumps(res, indent=2)
 
@@ -99,11 +104,12 @@ def restart(n, i, timeout):
 @cli.command('status', short_help='list all service modules.')
 @click.option('-n', help='service namespace.', default=False)
 @click.option('--timeout', help='(optional) command request timeout. default 2s', default=2)
-def status(n, timeout):
+@click.option('--kael_amqp', help='AMQP_URI, default KAEL_AURI in environ', default=AMQ_URI)
+def status(n, timeout, kael_amqp):
     if not n:
         raise click.BadParameter('namespace is wrong.')
     timeout = float(timeout)
-    server = WORK_FRAME(n, auri=AMQ_URI)
+    server = WORK_FRAME(n, auri=kael_amqp)
     res = server.package_status(timeout=timeout)
     # print json.dumps(res, indent=2)
     for s_name in res:
