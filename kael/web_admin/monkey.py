@@ -44,7 +44,9 @@ def patch_flask_route(bl=None, json=False, api=False):
         return decorator
 
     if bl:
-        bl.__class__.route = _route
+        class Blueprint(bl.__class__):
+            route = _route
+        bl.__class__ = Blueprint
     else:
         sys.modules['flask'].Flask.route = _route
         sys.modules['flask'].Blueprint.route = _route
