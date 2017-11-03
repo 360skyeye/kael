@@ -43,6 +43,9 @@ class micro_server(MQ):
         self.services.setdefault("man", self.man)
         self.register_all_service_queues()
 
+        if app is not None:
+            self.init_app(app)
+
     def single_instance(self):
         try:
             self.fh = open(self.LOCK_PATH, 'w')
