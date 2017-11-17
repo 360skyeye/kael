@@ -13,6 +13,7 @@ from functools import wraps
 import time
 import msgpack
 import pika
+import warnings
 
 __version__ = '0.0.4'
 __all__ = ['MQ']
@@ -57,16 +58,33 @@ class MQ(object):
         self.extype = extype
         self.channel = channel
         self.fun_map = {}
-        if auri:
-            self.auri = auri
-        else:
-            self.auri = self.app.config.get("AMQP_URI")
+        self.auri = auri
 
-        self.connection = self.connect()
-        c = self.connection.channel()
-        c.exchange_declare(exchange=channel,
-                           type=self.extype, )
+        if auri:
+            self.connection = self.init_connect()
+
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app):
+        if 'AMQP_URI' not in app.config:
+            warnings.warn('AMQP_URI not set. Defaulting to "amqp://uri".')
+        app.config.setdefault('AMQP_URI', 'amqp://uri')
+
+        self.app = app
+        self.auri = app.config.get("AMQP_URI")
+        self.connection = self.init_connect()
+
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions['mq'] = self
+
+    def init_connect(self):
+        connection = self.connect()
+        c = connection.channel()
+        c.exchange_declare(exchange=self.channel, type=self.extype)
         c.close()
+        return connection
 
     def connect(self, ):
         aps = pika.URLParameters(self.auri)

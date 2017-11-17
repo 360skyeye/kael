@@ -14,6 +14,7 @@ import time
 from functools import wraps
 from multiprocessing import Process
 from uuid import uuid4
+import warnings
 
 import fcntl
 import gevent.monkey
@@ -41,7 +42,23 @@ class micro_server(MQ):
         self.LOCK_PATH = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "{0}.lock".format(self.name))
         self.is_running = False
         self.services.setdefault("man", self.man)
+
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app):
+        super(micro_server, self).init_app(app)
+        if 'AMQP_URI' not in app.config:
+            warnings.warn('AMQP_URI not set. Defaulting to "amqp://uri".')
+        app.config.setdefault('AMQP_URI', 'amqp://uri')
+
+        self.app = app
+        self.auri = app.config.get("AMQP_URI")
         self.register_all_service_queues()
+
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions['micro_server'] = self
 
     def single_instance(self):
         try:
