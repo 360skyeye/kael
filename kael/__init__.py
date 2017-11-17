@@ -82,7 +82,7 @@ class MQ(object):
     def init_connect(self):
         connection = self.connect()
         c = connection.channel()
-        c.exchange_declare(exchange=self.channel, type=self.extype)
+        c.exchange_declare(exchange=self.channel, exchange_type=self.extype)
         c.close()
         return connection
 
